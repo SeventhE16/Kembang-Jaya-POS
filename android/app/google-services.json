@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "609384542584",
+    "project_id": "depot-kayu-pos",
+    "storage_bucket": "depot-kayu-pos.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:609384542584:android:2d5f8b3c65f11fa60fd88d",
+        "android_client_info": {
+          "package_name": "com.example.depot_kayu_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDw2b9jA0-fo31rODPlo79TWuHHyQWfkgs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
