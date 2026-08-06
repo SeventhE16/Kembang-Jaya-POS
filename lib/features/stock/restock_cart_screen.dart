@@ -266,14 +266,16 @@ class _RestockCartScreenState extends State<RestockCartScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               // Action Chips
-                              Row(
-                                children: [
-                                  _buildActionChip('Harga', () => _editItemDialog(key, 'harga')),
-                                  const SizedBox(width: AppDimensions.spacingSM),
-                                  _buildActionChip('Diskon', () => _editItemDialog(key, 'diskon')),
-                                  const SizedBox(width: AppDimensions.spacingSM),
-                                  _buildActionChip('Catatan', () => _editItemDialog(key, 'catatan')),
-                                ],
+                              Expanded(
+                                child: Wrap(
+                                  spacing: AppDimensions.spacingSM,
+                                  runSpacing: 4,
+                                  children: [
+                                    _buildActionChip('Harga', () => _editItemDialog(key, 'harga')),
+                                    _buildActionChip('Diskon', () => _editItemDialog(key, 'diskon')),
+                                    _buildActionChip('Catatan', () => _editItemDialog(key, 'catatan')),
+                                  ],
+                                ),
                               ),
                               // Qty controls
                               Container(

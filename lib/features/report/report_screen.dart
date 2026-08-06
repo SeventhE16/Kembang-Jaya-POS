@@ -35,9 +35,13 @@ class _ReportScreenState extends State<ReportScreen> {
     }
   }
 
-  List<Transaction> _filteredTransactions(TransactionProvider provider) {
+  List<Transaction> _filteredTransactions(TransactionProvider provider, {String? type}) {
     final start = _periodStart;
-    return provider.transactions.where((t) => !t.date.isBefore(start)).toList()
+    return provider.transactions.where((t) {
+      if (t.date.isBefore(start)) return false;
+      if (type != null && t.type != type) return false;
+      return true;
+    }).toList()
       ..sort((a, b) => a.date.compareTo(b.date));
   }
 
@@ -190,14 +194,12 @@ class _ReportScreenState extends State<ReportScreen> {
                       else if (_reportTabIndex == 1)
                         _buildPurchaseReport(provider)
                       else if (_reportTabIndex == 2)
-                        _buildPlaceholder('Stok Opname')
+                        _buildStockOpnameReport(provider)
                       else if (_reportTabIndex == 3)
-                        _buildPlaceholder('Mutasi Stok')
-                      else if (_reportTabIndex == 4)
                         _buildGradeMutationReport()
-                      else if (_reportTabIndex == 5)
+                      else if (_reportTabIndex == 4)
                         _buildCicilanReport(provider)
-                      else if (_reportTabIndex == 6)
+                      else if (_reportTabIndex == 5)
                         _buildCicilanKeluarReport(provider),
                     ],
                   ),
@@ -219,6 +221,96 @@ class _ReportScreenState extends State<ReportScreen> {
       icon: Icons.construction,
       title: 'Laporan $title',
       subtitle: 'Fitur ini sedang dalam pengembangan.',
+    );
+  }
+
+  Widget _buildStockOpnameReport(TransactionProvider provider) {
+    if (provider.isLoading) {
+      return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+    }
+
+    final opnames = provider.stockOpnames;
+    
+    if (opnames.isEmpty) {
+      return const AppEmptyState(
+        icon: Icons.inventory,
+        title: 'Belum ada Stok Opname',
+        subtitle: 'Riwayat stok opname akan muncul di sini.',
+      );
+    }
+
+    // Filter by period
+    final now = DateTime.now();
+    DateTime startDate;
+    switch (_periodIndex) {
+      case 0: // Hari ini
+        startDate = DateTime(now.year, now.month, now.day);
+        break;
+      case 1: // 7 Hari
+        startDate = now.subtract(const Duration(days: 7));
+        break;
+      case 2: // 30 Hari
+        startDate = now.subtract(const Duration(days: 30));
+        break;
+      case 3: // Semua
+      default:
+        startDate = DateTime(2000);
+        break;
+    }
+
+    final filtered = opnames.where((o) => o.date.isAfter(startDate) || o.date.isAtSameMomentAs(startDate)).toList();
+    filtered.sort((a, b) => b.date.compareTo(a.date));
+
+    if (filtered.isEmpty) {
+      return const AppEmptyState(
+        icon: Icons.search_off,
+        title: 'Tidak ada data',
+        subtitle: 'Tidak ada stok opname pada periode ini.',
+      );
+    }
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: filtered.length,
+      itemBuilder: (context, index) {
+        final opname = filtered[index];
+        return InkWell(
+          onTap: () {
+            Navigator.pushNamed(context, '/report_stock_opname_detail', arguments: opname);
+          },
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(DateFormat('dd MMM yyyy, HH:mm', 'id').format(opname.date), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      const SizedBox(height: 4),
+                      Text('Oleh: ${opname.cashierName}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
+                  child: Text('${opname.totalItemsChanged} Barang', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 13)),
+                ),
+                const SizedBox(width: 8),
+                const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textSecondary),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -309,7 +401,7 @@ class _ReportScreenState extends State<ReportScreen> {
   // SALES REPORT (Laporan Penjualan)
   // ========================================
   Widget _buildSalesReport(TransactionProvider provider) {
-    final transactions = _filteredTransactions(provider);
+    final transactions = _filteredTransactions(provider, type: 'sale');
     final aggregated = _aggregateTransactions(transactions);
 
     final totalPendapatan = transactions.fold<double>(0, (sum, t) => sum + t.total);
@@ -362,15 +454,15 @@ class _ReportScreenState extends State<ReportScreen> {
   // PURCHASE REPORT (Laporan Pembelian)
   // ========================================
   Widget _buildPurchaseReport(TransactionProvider provider) {
-    final entries = _filteredStockEntries(provider);
-    final aggregated = _aggregateStockEntries(entries);
+    final transactions = _filteredTransactions(provider, type: 'purchase');
+    final aggregated = _aggregateTransactions(transactions);
 
-    final totalPengeluaran = entries.fold<double>(0, (sum, e) => sum + e.totalCost);
-    final totalEntries = entries.length;
+    final totalPengeluaran = transactions.fold<double>(0, (sum, t) => sum + t.total);
+    final totalTransaksi = transactions.length;
 
     return Column(
       children: [
-        // Summary bar (simplified for purchases)
+        // Summary bar
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -381,7 +473,7 @@ class _ReportScreenState extends State<ReportScreen> {
           child: Row(
             children: [
               Expanded(
-                child: _summaryItem('Jml Suplai', totalEntries.toString()),
+                child: _summaryItem('Jml Pembelian', totalTransaksi.toString()),
               ),
               Container(width: 1, height: 36, color: Colors.white24),
               Expanded(
@@ -396,7 +488,7 @@ class _ReportScreenState extends State<ReportScreen> {
         if (aggregated.isNotEmpty)
           _buildLineChart(
             aggregated: aggregated,
-            valueKey: 'pengeluaran',
+            valueKey: 'pendapatan', // Using the same key from _aggregateTransactions
             chartTitle: 'Pengeluaran',
           ),
 
@@ -405,15 +497,15 @@ class _ReportScreenState extends State<ReportScreen> {
             padding: EdgeInsets.symmetric(vertical: 40),
             child: AppEmptyState(
               icon: Icons.inventory_2_outlined,
-              title: 'Belum ada suplai barang',
-              subtitle: 'Data pembelian akan muncul setelah ada suplai barang masuk.',
+              title: 'Belum ada pembelian',
+              subtitle: 'Data pembelian akan muncul setelah ada transaksi pembelian stok.',
             ),
           ),
 
         const SizedBox(height: 16),
 
         // List per period
-        ...aggregated.reversed.map((item) => _buildPurchaseListItem(item)),
+        ...aggregated.reversed.map((item) => _buildPurchaseListItem(item, transactions)),
       ],
     );
   }
@@ -435,10 +527,9 @@ class _ReportScreenState extends State<ReportScreen> {
             _tabButton('Penjualan', 0),
             _tabButton('Pembelian', 1),
             _tabButton('Stok Opname', 2),
-            _tabButton('Mutasi Stok', 3),
-            _tabButton('Mutasi Grade', 4),
-            _tabButton('Cicilan Masuk', 5),
-            _tabButton('Cicilan Keluar', 6),
+            _tabButton('Mutasi Grade', 3),
+            _tabButton('Cicilan Masuk', 4),
+            _tabButton('Cicilan Keluar', 5),
           ],
         ),
       ),
@@ -728,55 +819,63 @@ class _ReportScreenState extends State<ReportScreen> {
     );
   }
 
-  Widget _buildPurchaseListItem(Map<String, dynamic> item) {
+  Widget _buildPurchaseListItem(Map<String, dynamic> item, List<Transaction> allFiltered) {
     final label = item['label'] as String;
     final count = item['count'] as int;
-    final pengeluaran = item['pengeluaran'] as double;
+    final pengeluaran = item['pendapatan'] as double; // from aggregateTransactions
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 1),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: AppColors.divider)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label.toUpperCase(),
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '$count suplai',
-                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                ),
-              ],
+    return InkWell(
+      onTap: () {
+        final txns = _transactionsForLabel(allFiltered, label);
+        _navigateToDetail(txns, label);
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 1),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border(bottom: BorderSide(color: AppColors.divider)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 2,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label.toUpperCase(),
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '$count suplai',
+                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            flex: 3,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Total Pengeluaran', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                Text(
-                  'Rp ${_currencyFormat.format(pengeluaran)}',
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.error),
-                ),
-              ],
+            Expanded(
+              flex: 3,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Total Pengeluaran', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                  Text(
+                    'Rp ${_currencyFormat.format(pengeluaran)}',
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.error),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textSecondary),
-        ],
+            const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textSecondary),
+          ],
+        ),
       ),
     );
   }
+
+
 
   // ========================================
   // CICILAN REPORT (Laporan Cicilan Piutang)

@@ -10,6 +10,7 @@ class ProductCard extends StatelessWidget {
   final bool showEditDelete;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final bool allowZeroStock;
 
   const ProductCard({
     super.key,
@@ -19,11 +20,12 @@ class ProductCard extends StatelessWidget {
     this.showEditDelete = false,
     this.onEdit,
     this.onDelete,
+    this.allowZeroStock = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final bool isOutOfStock = product.trackStock && product.stock <= 0;
+    final bool isOutOfStock = !allowZeroStock && product.trackStock && product.stock <= 0;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

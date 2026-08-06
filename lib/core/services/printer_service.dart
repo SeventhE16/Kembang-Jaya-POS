@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -83,9 +84,19 @@ class PrinterService {
           bluetooth.printNewLine();
         } else {
           // Jika belum ada di cache atau berubah, download dan proses
-          final response = await http.get(Uri.parse(s.logoUrl!));
-          if (response.statusCode == 200) {
-            final originalImage = img.decodeImage(response.bodyBytes);
+          Uint8List? sourceBytes;
+          if (s.logoUrl!.startsWith('data:image')) {
+            final base64Str = s.logoUrl!.split(',').last;
+            sourceBytes = base64Decode(base64Str);
+          } else {
+            final response = await http.get(Uri.parse(s.logoUrl!));
+            if (response.statusCode == 200) {
+              sourceBytes = response.bodyBytes;
+            }
+          }
+
+          if (sourceBytes != null) {
+            final originalImage = img.decodeImage(sourceBytes);
             if (originalImage != null) {
               int targetSize = s.logoSize;
               final resized = img.copyResize(originalImage, width: targetSize);

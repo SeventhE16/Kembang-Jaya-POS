@@ -131,18 +131,20 @@ class ReportDetailScreen extends StatelessWidget {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text('Pendapatan', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                                Text(tx.type == 'purchase' ? 'Pengeluaran' : 'Pendapatan', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                                 Text(currencyFormat.format(tx.total), style: const TextStyle(fontWeight: FontWeight.bold)),
                               ],
                             ),
-                            const SizedBox(height: 4),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text('Keuntungan', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                                Text(currencyFormat.format(keuntungan), style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.success)),
-                              ],
-                            ),
+                            if (tx.type != 'purchase') ...[
+                              const SizedBox(height: 4),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text('Keuntungan', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                                  Text(currencyFormat.format(keuntungan), style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.success)),
+                                ],
+                              ),
+                            ],
                             const SizedBox(height: 8),
                             Row(
                               children: [

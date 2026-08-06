@@ -78,11 +78,11 @@ class TransactionService {
     }
   }
 
-  // --- Cicilan Piutang (Sub-Collection) ---
+  // --- Cicilan Piutang ---
   Future<void> addInstallment(String txId, InstallmentPayment installment) async {
     try {
       final txRef = _firestore.collection('transactions').doc(txId);
-      final instRef = txRef.collection('installments').doc();
+      final instRef = _firestore.collection('installments').doc();
       
       final instWithIds = InstallmentPayment(
         id: instRef.id,
@@ -115,19 +115,21 @@ class TransactionService {
 
   Stream<List<InstallmentPayment>> streamInstallments(String txId) {
     return _firestore
-        .collection('transactions')
-        .doc(txId)
         .collection('installments')
-        .orderBy('date', descending: true)
+        .where('transactionId', isEqualTo: txId)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => InstallmentPayment.fromJson(doc.data(), doc.id))
-            .toList());
+        .map((snapshot) {
+      final list = snapshot.docs
+          .map((doc) => InstallmentPayment.fromJson(doc.data(), doc.id))
+          .toList();
+      list.sort((a, b) => b.date.compareTo(a.date));
+      return list;
+    });
   }
 
   Stream<List<InstallmentPayment>> streamAllInstallments() {
     return _firestore
-        .collectionGroup('installments')
+        .collection('installments')
         .where('storeId', isEqualTo: StoreContext().storeId)
         .snapshots()
         .map((snapshot) {

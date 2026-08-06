@@ -163,6 +163,7 @@ class _AddStockScreenState extends State<AddStockScreen> {
                         return ProductCard(
                           product: product,
                           cartQuantity: cartQty,
+                          allowZeroStock: true,
                           onAdd: () => _addToCart(product, cartProvider),
                         );
                       },

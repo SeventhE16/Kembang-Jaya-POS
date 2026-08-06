@@ -7,6 +7,8 @@ import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
+import '../../core/widgets/app_button.dart';
+import '../../core/widgets/app_logo.dart';
 import '../../core/widgets/status_dialog.dart';
 import '../../data/models/transaction_model.dart';
 import '../../data/providers/settings_provider.dart';
@@ -138,7 +140,7 @@ class _StrukScreenState extends State<StrukScreen> {
                     children: [
                       // Logo
                       if (logoUrl != null && logoUrl.isNotEmpty)
-                        Image.network(logoUrl, height: 60, width: 60, errorBuilder: (ctx, err, stack) => const Icon(Icons.store, size: 60))
+                      AppLogo(logoUrl: logoUrl, height: 60, width: 60)
                       else
                         const Icon(Icons.store, size: 60, color: AppColors.textPrimary),
                       

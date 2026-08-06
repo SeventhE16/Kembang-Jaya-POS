@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image/image.dart' as img;
 import 'store_context.dart';
 
 class StoreSettings {
@@ -74,10 +76,22 @@ class SettingsService {
 
   Future<String> uploadLogo(File imageFile) async {
     try {
-      final storeId = StoreContext().storeId;
-      final ref = _storage.ref().child('settings/${storeId}_logo_${DateTime.now().millisecondsSinceEpoch}.png');
-      await ref.putFile(imageFile);
-      return await ref.getDownloadURL();
+      // Decode image
+      final bytes = await imageFile.readAsBytes();
+      final image = img.decodeImage(bytes);
+      if (image == null) throw Exception('Format gambar tidak didukung');
+
+      // Resize to max 380x380 to keep Base64 small and fit thermal printers
+      final resized = img.copyResize(
+        image,
+        width: 380,
+        height: image.height > image.width ? 380 : null,
+      );
+
+      // Encode to PNG and Base64
+      final pngBytes = img.encodePng(resized);
+      final base64String = base64Encode(pngBytes);
+      return 'data:image/png;base64,$base64String';
     } catch (e) {
       rethrow;
     }

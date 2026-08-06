@@ -13,6 +13,7 @@ import '../../core/constants/app_routes.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../core/widgets/app_drawer.dart';
 import '../../core/widgets/app_button.dart';
+import '../../core/widgets/app_logo.dart';
 import '../../core/widgets/app_text_field.dart';
 import '../../core/widgets/status_dialog.dart';
 import '../../core/services/printer_service.dart';
@@ -403,7 +404,12 @@ class _SettingScreenState extends State<SettingScreen> {
                       borderRadius: BorderRadius.circular(8),
                       child: Image.file(_logoFile!, fit: BoxFit.cover),
                     )
-                  : const Icon(Icons.image, color: AppColors.textSecondary, size: 32),
+                  : (_logoUrlController.text.isNotEmpty)
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: AppLogo(logoUrl: _logoUrlController.text, height: 80, fit: BoxFit.cover),
+                        )
+                      : const Icon(Icons.image, color: AppColors.textSecondary, size: 32),
             ),
             const SizedBox(width: 16),
             Expanded(

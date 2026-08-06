@@ -38,11 +38,21 @@ class _StokOpnameScreenState extends State<StokOpnameScreen> {
 
   void _saveOpname(List<Product> products, String cashierName) {
     int changed = 0;
+    List<StockOpnameItem> changedItems = [];
+    
     for (var p in products) {
       if (_physicalStocks.containsKey(p.id)) {
         final newStock = _physicalStocks[p.id]!;
         if (newStock != p.stock) {
           changed++;
+          
+          changedItems.add(StockOpnameItem(
+            productId: p.id,
+            productName: p.name,
+            oldStock: p.stock,
+            newStock: newStock,
+          ));
+          
           p.stock = newStock;
           Provider.of<ProductProvider>(context, listen: false).updateProduct(p);
         }
@@ -55,6 +65,7 @@ class _StokOpnameScreenState extends State<StokOpnameScreen> {
         date: DateTime.now(),
         cashierName: cashierName,
         totalItemsChanged: changed,
+        items: changedItems,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       ));

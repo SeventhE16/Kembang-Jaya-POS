@@ -38,8 +38,12 @@ import 'features/discount/discount_fee_menu_screen.dart';
 import 'features/fee/fee_screen.dart';
 import 'features/report/report_screen.dart';
 import 'features/report/report_detail_screen.dart';
+import 'features/report/stock_opname_detail_screen.dart';
 import 'features/report/struk_screen.dart';
 import 'features/stock/add_stock_screen.dart';
+import 'features/stock/restock_cart_screen.dart';
+import 'features/stock/restock_payment_screen.dart';
+import 'features/stock/restock_confirmation_screen.dart';
 import 'features/stock/mutation_screen.dart';
 import 'features/settings/setting_screen.dart';
 
@@ -100,6 +104,9 @@ class DepotKayuApp extends StatelessWidget {
         AppRoutes.cart: (context) => const CartScreen(),
         AppRoutes.payment: (context) => const PaymentScreen(),
         AppRoutes.confirmation: (context) => const ConfirmationScreen(),
+        AppRoutes.restockCart: (context) => const RestockCartScreen(),
+        AppRoutes.restockPayment: (context) => const RestockPaymentScreen(),
+        AppRoutes.restockConfirmation: (context) => const RestockConfirmationScreen(),
         AppRoutes.holdOrders: (context) => const HoldOrderScreen(),
         '/piutang': (context) => const DebtReceivableMenuScreen(),
         '/piutang_pelanggan': (context) => const PiutangScreen(),
@@ -114,6 +121,7 @@ class DepotKayuApp extends StatelessWidget {
         AppRoutes.report: (context) => const ReportScreen(),
         AppRoutes.setting: (context) => const SettingScreen(),
         '/report_detail': (context) => const ReportDetailScreen(),
+        '/report_stock_opname_detail': (context) => const StockOpnameDetailScreen(),
         '/struk': (context) => const StrukScreen(),
       },
     );

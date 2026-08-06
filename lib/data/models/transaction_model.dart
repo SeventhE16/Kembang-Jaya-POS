@@ -361,12 +361,43 @@ class StockEntry {
   double get costPerUnit => quantity > 0 ? totalCost / quantity : 0;
 }
 
+class StockOpnameItem {
+  final String productId;
+  final String productName;
+  final int oldStock;
+  final int newStock;
 
+  StockOpnameItem({
+    required this.productId,
+    required this.productName,
+    required this.oldStock,
+    required this.newStock,
+  });
+
+  factory StockOpnameItem.fromJson(Map<String, dynamic> json) {
+    return StockOpnameItem(
+      productId: json['productId'] ?? '',
+      productName: json['productName'] ?? '',
+      oldStock: json['oldStock'] ?? 0,
+      newStock: json['newStock'] ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'productId': productId,
+      'productName': productName,
+      'oldStock': oldStock,
+      'newStock': newStock,
+    };
+  }
+}
 class StockOpnameEntry {
   final String id;
   final DateTime date;
   final String cashierName;
   final int totalItemsChanged;
+  final List<StockOpnameItem> items;
   final DateTime createdAt;
   final DateTime updatedAt;
   final String? createdBy;
@@ -377,6 +408,7 @@ class StockOpnameEntry {
     required this.date, 
     required this.cashierName, 
     required this.totalItemsChanged,
+    this.items = const [],
     required this.createdAt,
     required this.updatedAt,
     this.createdBy,
@@ -389,6 +421,7 @@ class StockOpnameEntry {
       date: (json['date'] as Timestamp?)?.toDate() ?? DateTime.now(),
       cashierName: json['cashierName'] ?? '',
       totalItemsChanged: json['totalItemsChanged'] ?? 0,
+      items: (json['items'] as List<dynamic>?)?.map((e) => StockOpnameItem.fromJson(e)).toList() ?? [],
       createdAt: (json['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (json['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       createdBy: json['createdBy'] as String?,
@@ -401,6 +434,7 @@ class StockOpnameEntry {
       'date': Timestamp.fromDate(date),
       'cashierName': cashierName,
       'totalItemsChanged': totalItemsChanged,
+      'items': items.map((e) => e.toJson()).toList(),
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
       'createdBy': createdBy,

@@ -7,6 +7,7 @@ import '../../core/constants/app_dimensions.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/widgets/app_button.dart';
+import '../../core/widgets/app_logo.dart';
 import '../../core/widgets/status_dialog.dart';
 import 'package:provider/provider.dart';
 import '../../data/providers/cart_provider.dart';
@@ -61,7 +62,7 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
         children: [
           // Logo
           if (settings?.logoUrl != null && settings!.logoUrl!.isNotEmpty)
-             Image.network(settings.logoUrl!, height: 64, fit: BoxFit.contain)
+             AppLogo(logoUrl: settings.logoUrl!, height: 64, fit: BoxFit.contain)
           else
              const Icon(Icons.storefront, color: Colors.black54, size: 48),
           const SizedBox(height: 16),
