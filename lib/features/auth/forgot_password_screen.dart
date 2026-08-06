@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_dimensions.dart';
 import '../../core/constants/app_assets.dart';
 import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_text_field.dart';
 import '../../core/widgets/status_dialog.dart';
+import '../../data/providers/auth_provider.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -14,66 +17,51 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
-  final _codeController = TextEditingController();
   bool _isLoading = false;
-  bool _codeSent = false;
+  bool _emailSent = false;
 
-  Future<void> _handleSendCode() async {
+  Future<void> _handleResetPassword() async {
     final email = _emailController.text.trim();
 
     if (email.isEmpty) {
       showStatusSnackBar(
         context,
         message: 'Email wajib diisi',
-        isSuccess: false,
+        type: SnackbarType.error,
       );
       return;
     }
 
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 1500)); // Mock network
-    if (!mounted) return;
-    setState(() {
-      _isLoading = false;
-      _codeSent = true;
-    });
-
-    showStatusSnackBar(
-      context,
-      message: 'Kode unik telah dikirim ke email Anda',
-      isSuccess: true,
-    );
-  }
-
-  Future<void> _handleVerifyCode() async {
-    final code = _codeController.text.trim();
-
-    if (code.isEmpty) {
+    
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      await authProvider.resetPassword(email);
+      
+      if (!mounted) return;
+      setState(() => _emailSent = true);
       showStatusSnackBar(
         context,
-        message: 'Kode unik wajib diisi',
-        isSuccess: false,
+        message: 'Email reset password telah dikirim ke $email',
+        type: SnackbarType.success,
       );
-      return;
+    } catch (e) {
+      if (!mounted) return;
+      showStatusSnackBar(
+        context,
+        message: 'Gagal mengirim email: $e',
+        type: SnackbarType.error,
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
-
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 1500)); // Mock network
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-
-    showStatusSnackBar(
-      context,
-      message: 'Password berhasil direset (Mock)',
-      isSuccess: true,
-    );
-    Navigator.pop(context);
   }
 
   @override
   void dispose() {
     _emailController.dispose();
-    _codeController.dispose();
     super.dispose();
   }
 
@@ -107,13 +95,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
               children: [
-                const SizedBox(height: 20),
+                const SizedBox(height: AppDimensions.spacingLG),
                 Image.asset(
                   AppAssets.logo,
                   width: 80,
                   height: 80,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: AppDimensions.spacingLG),
                 const Text(
                   'Lupa Password',
                   textAlign: TextAlign.center,
@@ -124,22 +112,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     height: 1.2,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppDimensions.spacingSM),
                 const Text(
-                  'Masukkan email untuk menerima kode',
+                  'Masukkan email untuk menerima link reset',
                   style: TextStyle(
                     fontSize: 16,
                     color: AppColors.textSecondary,
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: AppDimensions.spacingXL),
 
                 // Form
                 Container(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(AppDimensions.spacingLG),
                   decoration: BoxDecoration(
                     color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(AppDimensions.radius),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.05),
@@ -156,32 +144,25 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         controller: _emailController,
                         prefix: const Icon(Icons.email_outlined),
                         keyboardType: TextInputType.emailAddress,
-                        readOnly: _codeSent,
                       ),
-                      
-                      if (_codeSent) ...[
-                        const SizedBox(height: 16),
-                        AppTextField(
-                          label: 'Kode Unik',
-                          hint: 'Masukkan 6 digit kode',
-                          controller: _codeController,
-                          prefix: const Icon(Icons.pin_outlined),
-                          keyboardType: TextInputType.number,
-                        ),
-                      ],
-                      
-                      const SizedBox(height: 32),
-                      
+                      const SizedBox(height: AppDimensions.spacingXL),
                       AppButton(
-                        label: _codeSent ? 'Verifikasi & Reset' : 'Kirim Kode',
-                        onPressed: _codeSent ? _handleVerifyCode : _handleSendCode,
-                        isLoading: _isLoading,
+                        label: _emailSent ? 'Kirim Ulang Link' : 'Kirim Link Reset',
                         isFullWidth: true,
+                        isLoading: _isLoading,
+                        onPressed: _handleResetPassword,
                       ),
+                      if (_emailSent) ...[
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Silakan periksa kotak masuk (atau spam) email Anda untuk mengatur ulang password.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.green, fontSize: 13),
+                        )
+                      ]
                     ],
                   ),
                 ),
-                const SizedBox(height: 40),
               ],
             ),
           ),

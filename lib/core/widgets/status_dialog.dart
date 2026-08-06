@@ -1,26 +1,55 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 
-/// Shows a top snackbar for success or error feedback
+import '../constants/app_dimensions.dart';
+
+enum SnackbarType { success, error, warning }
+
+/// Shows a top snackbar for success, error, or warning feedback
 void showStatusSnackBar(
   BuildContext context, {
   required String message,
-  required bool isSuccess,
+  required SnackbarType type,
+  VoidCallback? onUndo,
 }) {
+  final theme = Theme.of(context);
   ScaffoldMessenger.of(context).hideCurrentSnackBar();
+  
+  // Clean up error messages: remove "Exception: " and "[firebase_auth/...]" codes
+  String cleanMsg = message.replaceAll('Exception: ', '');
+  cleanMsg = cleanMsg.replaceAll(RegExp(r'\[.*?\]\s*'), '').trim();
+  
+  Color backgroundColor;
+  IconData iconData;
+  
+  switch (type) {
+    case SnackbarType.success:
+      backgroundColor = AppColors.success;
+      iconData = Icons.check_circle;
+      break;
+    case SnackbarType.error:
+      backgroundColor = theme.colorScheme.error;
+      iconData = Icons.error;
+      break;
+    case SnackbarType.warning:
+      backgroundColor = AppColors.warning;
+      iconData = Icons.warning;
+      break;
+  }
+  
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Row(
         children: [
           Icon(
-            isSuccess ? Icons.check_circle : Icons.error,
+            iconData,
             color: Colors.white,
-            size: 22,
+            size: AppDimensions.iconSize,
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: AppDimensions.spacingSM),
           Expanded(
             child: Text(
-              message,
+              cleanMsg,
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 14,
@@ -30,15 +59,22 @@ void showStatusSnackBar(
           ),
         ],
       ),
-      backgroundColor: isSuccess ? AppColors.success : AppColors.errorBackground,
+      backgroundColor: backgroundColor,
       behavior: SnackBarBehavior.floating,
-      margin: EdgeInsets.only(
-        bottom: MediaQuery.of(context).size.height - 150,
-        left: 16,
-        right: 16,
+      margin: const EdgeInsets.only(
+        bottom: AppDimensions.spacingMD,
+        left: AppDimensions.spacingMD,
+        right: AppDimensions.spacingMD,
       ),
-      duration: const Duration(seconds: 3),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      duration: const Duration(seconds: 4),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusSM)),
+      action: onUndo != null
+          ? SnackBarAction(
+              label: 'UNDO',
+              textColor: Colors.white,
+              onPressed: onUndo,
+            )
+          : null,
     ),
   );
 }
@@ -57,7 +93,7 @@ void showReceiptDialog(
     builder: (ctx) => Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppDimensions.spacingLG),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -76,11 +112,11 @@ void showReceiptDialog(
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12, height: 1.4),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppDimensions.spacingMD),
 
             // Dashed line
             _dashedLine(),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppDimensions.spacingSM),
 
             // Transaction info
             Row(
@@ -97,9 +133,9 @@ void showReceiptDialog(
                 Text(cashier, style: const TextStyle(fontSize: 12)),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppDimensions.spacingSM),
             _dashedLine(),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppDimensions.spacingSM),
 
             // Items
             ...items.map((item) => Column(
@@ -128,7 +164,7 @@ void showReceiptDialog(
 
             const SizedBox(height: 4),
             _dashedLine(),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppDimensions.spacingSM),
 
             // Totals
             Row(
@@ -158,16 +194,16 @@ void showReceiptDialog(
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppDimensions.spacingSM),
             _dashedLine(),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppDimensions.spacingMD),
 
             const Text(
               'Terima kasih atas kunjungan Anda! Barang\nyang sudah dibeli tidak dapat\ndikembalikan.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.4),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppDimensions.spacingMD),
 
             // Print button
             SizedBox(
@@ -215,3 +251,4 @@ String _formatNum(int number) {
     (match) => '${match[1]}.',
   );
 }
+

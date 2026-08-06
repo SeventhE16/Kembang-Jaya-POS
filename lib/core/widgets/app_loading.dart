@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/app_dimensions.dart';
 import '../constants/app_colors.dart';
 
 class AppLoading extends StatelessWidget {
@@ -20,7 +21,7 @@ class AppLoading extends StatelessWidget {
             color: AppColors.primary,
           ),
           if (message != null) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: AppDimensions.spacingMD),
             Text(
               message!,
               textAlign: TextAlign.center,
@@ -64,3 +65,4 @@ class AppLoadingOverlay extends StatelessWidget {
     );
   }
 }
+

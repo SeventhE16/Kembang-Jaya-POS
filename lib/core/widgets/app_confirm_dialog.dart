@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import '../constants/app_colors.dart';
 import 'app_button.dart';
+
+import '../constants/app_dimensions.dart';
 
 /// Shows a generic confirmation dialog
 void showConfirmDialog(
   BuildContext context, {
   required String title,
   required String message,
-  String confirmLabel = 'Ya',
+  String confirmLabel = 'Konfirmasi',
   String cancelLabel = 'Batal',
   required VoidCallback onConfirm,
   bool isDestructive = false,
@@ -15,63 +16,51 @@ void showConfirmDialog(
   showDialog(
     context: context,
     builder: (ctx) => Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radius)),
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppDimensions.spacingLG),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               isDestructive ? Icons.warning_rounded : Icons.help_outline_rounded,
               size: 48,
-              color: isDestructive ? AppColors.error : AppColors.primary,
+              color: isDestructive ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.primary,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppDimensions.spacingMD),
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
+              style: Theme.of(context).textTheme.titleMedium,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppDimensions.spacingSM),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
                 height: 1.4,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppDimensions.spacingLG),
             Row(
               children: [
                 Expanded(
                   child: AppButton(
                     label: cancelLabel,
-                    isPrimary: false,
+                    variant: AppButtonVariant.secondary,
                     onPressed: () => Navigator.pop(ctx),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppDimensions.spacingSM),
                 Expanded(
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 48, // Match standard button height if AppButton specifies it
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        onConfirm();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isDestructive ? AppColors.error : AppColors.primary,
-                        foregroundColor: Colors.white,
-                      ),
-                      child: Text(confirmLabel),
-                    ),
+                  child: AppButton(
+                    label: confirmLabel,
+                    variant: isDestructive ? AppButtonVariant.danger : AppButtonVariant.primary,
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      onConfirm();
+                    },
                   ),
                 ),
               ],
@@ -98,3 +87,6 @@ void showDeleteDialog(
     onConfirm: onConfirm,
   );
 }
+
+
+

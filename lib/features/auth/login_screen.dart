@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_dimensions.dart';
 import '../../core/constants/app_assets.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_text_field.dart';
 import '../../core/widgets/status_dialog.dart';
+import 'package:provider/provider.dart';
+import '../../data/providers/auth_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,6 +21,13 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    // Auto-login is now handled safely in the build method 
+    // by observing AuthProvider's isLoadingUser and userModel
+  }
+
   Future<void> _handleLogin() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
@@ -26,21 +36,31 @@ class _LoginScreenState extends State<LoginScreen> {
       showStatusSnackBar(
         context,
         message: 'Email dan password wajib diisi',
-        isSuccess: false,
+        type: SnackbarType.error,
       );
       return;
     }
 
     setState(() => _isLoading = true);
 
-    // Simulate network delay
-    await Future.delayed(const Duration(milliseconds: 1500));
-
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-
-    // Dummy login - any non-empty credentials work
-    Navigator.pushReplacementNamed(context, AppRoutes.sales);
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      await authProvider.login(email, password);
+      
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, AppRoutes.sync);
+    } catch (e) {
+      if (!mounted) return;
+      showStatusSnackBar(
+        context,
+        message: 'Gagal login: ${e.toString().replaceAll('Exception: ', '')}',
+        type: SnackbarType.error,
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
@@ -52,6 +72,36 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+
+    // Auto navigation when user data finishes loading and is valid
+    if (!auth.isLoadingUser && auth.isAuthenticated && auth.userModel != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) Navigator.pushReplacementNamed(context, AppRoutes.sync);
+      });
+      return const Scaffold(body: Center(child: CircularProgressIndicator(color: AppColors.primary)));
+    }
+
+    if (auth.isLoadingUser) {
+      return Scaffold(
+        body: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [AppColors.primarySurface, Colors.white],
+              stops: [0.0, 0.5],
+            ),
+          ),
+          child: const Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -80,7 +130,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: 80,
                   height: 80,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: AppDimensions.spacingLG),
 
                 // Store name
                 const Text(
@@ -93,7 +143,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     height: 1.2,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppDimensions.spacingSM),
 
                 // Subtitle
                 const Text(
@@ -104,14 +154,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: AppDimensions.spacingXL),
 
                 // Login Card
                 Container(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(AppDimensions.spacingLG),
                   decoration: BoxDecoration(
                     color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(AppDimensions.radius),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.05),
@@ -129,7 +179,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         prefix: const Icon(Icons.email_outlined),
                         keyboardType: TextInputType.emailAddress,
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: AppDimensions.spacingMD),
                       AppTextField(
                         label: 'Password',
                         hint: 'Masukkan password Anda',
@@ -137,7 +187,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         obscureText: true,
                         prefix: const Icon(Icons.lock_outline),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppDimensions.spacingMD),
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
@@ -153,13 +203,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: AppDimensions.spacingLG),
                       AppButton(
                         label: 'Masuk',
                         onPressed: _handleLogin,
                         isLoading: _isLoading,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppDimensions.spacingMD),
 
                       // Register link
                       Row(
@@ -195,3 +245,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
+
+
+

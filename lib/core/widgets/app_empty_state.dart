@@ -1,74 +1,60 @@
 import 'package:flutter/material.dart';
-import '../constants/app_colors.dart';
-import 'app_button.dart';
+import '../constants/app_dimensions.dart';
 
 class AppEmptyState extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final String? actionLabel;
-  final VoidCallback? onAction;
+  final Widget? action;
 
   const AppEmptyState({
     super.key,
     required this.icon,
     required this.title,
     required this.subtitle,
-    this.actionLabel,
-    this.onAction,
+    this.action,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(AppDimensions.spacingLG),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 100,
-              height: 100,
-              decoration: const BoxDecoration(
-                color: AppColors.iconLight,
+              padding: const EdgeInsets.all(AppDimensions.spacingLG),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
                 size: 64,
-                color: AppColors.primary,
+                color: theme.colorScheme.primary,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppDimensions.spacingLG),
             Text(
               title,
+              style: theme.textTheme.titleMedium,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppDimensions.spacingSM),
             Text(
               subtitle,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+              ),
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary,
-              ),
             ),
-            if (actionLabel != null && onAction != null) ...[
-              const SizedBox(height: 24),
-              SizedBox(
-                width: 200,
-                child: AppButton(
-                  label: actionLabel!,
-                  onPressed: onAction!,
-                  isFullWidth: true,
-                ),
-              ),
+            if (action != null) ...[
+              const SizedBox(height: AppDimensions.spacingLG),
+              action!,
             ],
           ],
         ),

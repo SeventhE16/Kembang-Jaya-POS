@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/app_dimensions.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_text_field.dart';
 import '../../core/widgets/status_dialog.dart';
-import '../../data/dummy/dummy_data.dart';
+import 'package:provider/provider.dart';
+import '../../data/providers/discount_provider.dart';
 import '../../data/models/discount_model.dart';
 
 class AddDiscountScreen extends StatefulWidget {
@@ -25,12 +27,12 @@ class _AddDiscountScreenState extends State<AddDiscountScreen> {
     super.dispose();
   }
 
-  void _onTambah() {
+  Future<void> _onTambah() async {
     if (_nameController.text.trim().isEmpty) {
       showStatusSnackBar(
         context,
         message: 'Nama diskon wajib diisi',
-        isSuccess: false,
+        type: SnackbarType.error,
       );
       return;
     }
@@ -40,7 +42,16 @@ class _AddDiscountScreenState extends State<AddDiscountScreen> {
       showStatusSnackBar(
         context,
         message: 'Nilai diskon harus lebih dari 0',
-        isSuccess: false,
+        type: SnackbarType.error,
+      );
+      return;
+    }
+    
+    if (_selectedType == DiscountType.percent && value > 100) {
+      showStatusSnackBar(
+        context,
+        message: 'Diskon maksimal 100%',
+        type: SnackbarType.error,
       );
       return;
     }
@@ -50,14 +61,17 @@ class _AddDiscountScreenState extends State<AddDiscountScreen> {
       name: _nameController.text.trim(),
       type: _selectedType,
       value: value,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
     );
 
-    DummyData().discounts.add(newDiscount);
+    await Provider.of<DiscountProvider>(context, listen: false).addDiscount(newDiscount);
 
+    if (!mounted) return;
     showStatusSnackBar(
       context,
       message: 'Diskon ditambahkan',
-      isSuccess: true,
+      type: SnackbarType.success,
     );
     Navigator.pop(context, true);
   }
@@ -70,9 +84,9 @@ class _AddDiscountScreenState extends State<AddDiscountScreen> {
           icon: const Icon(Icons.chevron_left, color: AppColors.primary, size: 28),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Tambah Diskon',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          style: Theme.of(context).textTheme.titleLarge,
         ),
       ),
       body: SafeArea(
@@ -81,7 +95,7 @@ class _AddDiscountScreenState extends State<AddDiscountScreen> {
             const Divider(height: 1),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(AppDimensions.spacingLG),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -90,11 +104,11 @@ class _AddDiscountScreenState extends State<AddDiscountScreen> {
                       hint: 'mis. Diskon Tukang',
                       controller: _nameController,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppDimensions.spacingMD),
                     
                     const Text('Tipe',
                         style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppDimensions.spacingSM),
                     Row(
                       children: [
                         _TypeRadio(
@@ -102,7 +116,7 @@ class _AddDiscountScreenState extends State<AddDiscountScreen> {
                           isSelected: _selectedType == DiscountType.percent,
                           onTap: () => setState(() => _selectedType = DiscountType.percent),
                         ),
-                        const SizedBox(width: 24),
+                        const SizedBox(width: AppDimensions.spacingLG),
                         _TypeRadio(
                           label: 'Nominal (Rp)',
                           isSelected: _selectedType == DiscountType.nominal,
@@ -110,7 +124,7 @@ class _AddDiscountScreenState extends State<AddDiscountScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppDimensions.spacingMD),
                     
                     AppTextField(
                       label: 'Nilai',
@@ -123,7 +137,7 @@ class _AddDiscountScreenState extends State<AddDiscountScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppDimensions.spacingMD),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -131,10 +145,10 @@ class _AddDiscountScreenState extends State<AddDiscountScreen> {
                     label: 'Tambah',
                     onPressed: _onTambah,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppDimensions.spacingSM),
                   AppButton(
                     label: 'Batal',
-                    isPrimary: false,
+                    variant: AppButtonVariant.secondary,
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -189,9 +203,15 @@ class _TypeRadio extends StatelessWidget {
                 : null,
           ),
           const SizedBox(width: 6),
-          Text(label, style: const TextStyle(fontSize: 14)),
+          Text(label, style: Theme.of(context).textTheme.bodyMedium),
         ],
       ),
     );
   }
 }
+
+
+
+
+
+

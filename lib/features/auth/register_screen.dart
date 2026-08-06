@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_dimensions.dart';
 import '../../core/constants/app_assets.dart';
 import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_text_field.dart';
 import '../../core/widgets/status_dialog.dart';
+import 'package:provider/provider.dart';
+import '../../data/providers/auth_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -27,7 +31,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       showStatusSnackBar(
         context,
         message: 'Semua kolom wajib diisi',
-        isSuccess: false,
+        type: SnackbarType.error,
       );
       return;
     }
@@ -36,22 +40,64 @@ class _RegisterScreenState extends State<RegisterScreen> {
       showStatusSnackBar(
         context,
         message: 'Password dan Konfirmasi Password tidak sama',
-        isSuccess: false,
+        type: SnackbarType.error,
       );
       return;
     }
 
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 1500)); // Mock network
-    if (!mounted) return;
-    setState(() => _isLoading = false);
 
-    showStatusSnackBar(
-      context,
-      message: 'Akun berhasil dibuat. Silakan login.',
-      isSuccess: true,
-    );
-    Navigator.pop(context);
+    try {
+      await context.read<AuthProvider>().register(email, password);
+      
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      showStatusSnackBar(
+        context,
+        message: 'Akun berhasil dibuat. Silakan login.',
+        type: SnackbarType.success,
+      );
+      Navigator.pop(context);
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      
+      String message = 'Terjadi kesalahan saat pendaftaran';
+      switch (e.code) {
+        case 'email-already-in-use':
+          message = 'Email sudah digunakan oleh akun lain';
+          break;
+        case 'invalid-email':
+          message = 'Format email tidak valid';
+          break;
+        case 'weak-password':
+          message = 'Password terlalu lemah (minimal 6 karakter)';
+          break;
+        case 'operation-not-allowed':
+          message = 'Pendaftaran email/password tidak diizinkan';
+          break;
+        case 'network-request-failed':
+          message = 'Masalah koneksi internet';
+          break;
+        default:
+          message = e.message ?? message;
+      }
+      
+      showStatusSnackBar(
+        context,
+        message: message,
+        type: SnackbarType.error,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      showStatusSnackBar(
+        context,
+        message: 'Terjadi kesalahan tidak terduga',
+        type: SnackbarType.error,
+      );
+    }
   }
 
   @override
@@ -92,13 +138,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
               children: [
-                const SizedBox(height: 20),
+                const SizedBox(height: AppDimensions.spacingLG),
                 Image.asset(
                   AppAssets.logo,
                   width: 80,
                   height: 80,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: AppDimensions.spacingLG),
                 const Text(
                   'Buat Akun Baru',
                   textAlign: TextAlign.center,
@@ -109,7 +155,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     height: 1.2,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppDimensions.spacingSM),
                 const Text(
                   'Silakan daftar untuk melanjutkan',
                   style: TextStyle(
@@ -117,14 +163,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     color: AppColors.textSecondary,
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: AppDimensions.spacingXL),
 
                 // Form
                 Container(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(AppDimensions.spacingLG),
                   decoration: BoxDecoration(
                     color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(AppDimensions.radius),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.05),
@@ -142,7 +188,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         prefix: const Icon(Icons.email_outlined),
                         keyboardType: TextInputType.emailAddress,
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: AppDimensions.spacingMD),
                       AppTextField(
                         label: 'Password',
                         hint: 'Buat password baru',
@@ -150,7 +196,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         obscureText: true,
                         prefix: const Icon(Icons.lock_outline),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: AppDimensions.spacingMD),
                       AppTextField(
                         label: 'Konfirmasi Password',
                         hint: 'Ketik ulang password',
@@ -158,7 +204,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         obscureText: true,
                         prefix: const Icon(Icons.lock_outline),
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: AppDimensions.spacingXL),
                       AppButton(
                         label: 'Daftar',
                         onPressed: _handleRegister,
@@ -177,3 +223,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 }
+
+
+

@@ -1,11 +1,23 @@
+import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
+import 'package:blue_thermal_printer/blue_thermal_printer.dart';
+import 'package:provider/provider.dart';
+import '../../data/providers/auth_provider.dart';
+
 import '../../core/constants/app_colors.dart';
+import '../../data/models/user_model.dart';
 import '../../core/constants/app_routes.dart';
+import '../../core/constants/app_dimensions.dart';
 import '../../core/widgets/app_drawer.dart';
 import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_text_field.dart';
 import '../../core/widgets/status_dialog.dart';
-import '../../data/dummy/dummy_data.dart';
+import '../../core/services/printer_service.dart';
+import '../../core/services/settings_service.dart';
+import '../../data/providers/settings_provider.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
@@ -21,31 +33,45 @@ class _SettingScreenState extends State<SettingScreen> {
   final _phoneController = TextEditingController(text: '0812-3456-7890');
   final _emailController = TextEditingController();
 
+  List<BluetoothDevice> _devices = [];
+  bool _isLoadingPrinters = false;
+
   @override
   void initState() {
     super.initState();
-    _nameController.text = DummyData().currentUser.value['name'] ?? '';
-    _emailController.text = DummyData().currentUser.value['email'] ?? '';
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final settings = Provider.of<SettingsProvider>(context, listen: false).settings;
+      if (auth.user != null) {
+        _nameController.text = auth.user!.displayName ?? '';
+        _emailController.text = auth.user!.email ?? '';
+      }
+      if (settings != null) {
+        _storeNameController.text = settings.name;
+        _storeAddressController.text = settings.address;
+        _storePhoneController.text = settings.phone;
+        _logoSizeController.text = settings.logoSize.toString();
+      }
+    });
+    _loadPrinters();
   }
 
-  // --- Printer State ---
-  final List<Map<String, dynamic>> _printers = [
-    {
-      'name': 'Thermal Printer 58mm',
-      'address': 'BT:00:11:22:33:44',
-      'date': '14/6/2026',
-      'connected': true,
-    },
-    {
-      'name': 'Epson TM-T82',
-      'address': 'USB-001',
-      'date': '10/6/2026',
-      'connected': false,
-    },
-  ];
+  Future<void> _loadPrinters() async {
+    setState(() { _isLoadingPrinters = true; });
+    final devices = await PrinterService().getPairedDevices();
+    setState(() {
+      _devices = devices;
+      _isLoadingPrinters = false;
+    });
+  }
 
   // --- Struk State ---
+  File? _logoFile;
   final _logoUrlController = TextEditingController();
+  final _storeNameController = TextEditingController();
+  final _storeAddressController = TextEditingController();
+  final _storePhoneController = TextEditingController();
+  final _logoSizeController = TextEditingController(text: '200');
   final _adminFeeController = TextEditingController(text: '0');
   final _taxController = TextEditingController(text: '0');
 
@@ -66,15 +92,64 @@ class _SettingScreenState extends State<SettingScreen> {
     _phoneController.dispose();
     _emailController.dispose();
     _logoUrlController.dispose();
+    _storeNameController.dispose();
+    _storeAddressController.dispose();
+    _storePhoneController.dispose();
+    _logoSizeController.dispose();
     _adminFeeController.dispose();
     _taxController.dispose();
     super.dispose();
   }
 
+  Future<void> _pickLogo() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _logoFile = File(pickedFile.path);
+      });
+    }
+  }
+
+  void _showChangePasswordDialog(BuildContext context) {
+    final newPassController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Ganti Password'),
+        content: AppTextField(
+          label: 'Password Baru',
+          controller: newPassController,
+          obscureText: true,
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
+          AppButton(
+            label: 'Simpan',
+            onPressed: () async {
+              try {
+                // We'd ideally call AuthService or AuthProvider to update password
+                await auth.FirebaseAuth.instance.currentUser?.updatePassword(newPassController.text);
+                if (ctx.mounted) {
+                  Navigator.pop(ctx);
+                  showStatusSnackBar(context, message: 'Password berhasil diubah', type: SnackbarType.success);
+                }
+              } catch (e) {
+                if (ctx.mounted) {
+                  showStatusSnackBar(context, message: 'Gagal mengubah password: \$e', type: SnackbarType.error);
+                }
+              }
+            }
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const AppDrawer(currentRoute: '/setting'),
+      drawer: const AppDrawer(currentRoute: AppRoutes.setting),
       appBar: AppBar(
         title: const Text(
           'Pengaturan',
@@ -100,6 +175,10 @@ class _SettingScreenState extends State<SettingScreen> {
                   _buildPrinterSection(),
                   const SizedBox(height: 12),
                   _buildStrukSection(),
+                  if (context.watch<AuthProvider>().userModel?.role == UserRole.admin) ...[
+                    const SizedBox(height: 12),
+                    _buildStaffManagementSection(),
+                  ],
                   const SizedBox(height: 24),
                 ],
               ),
@@ -140,28 +219,66 @@ class _SettingScreenState extends State<SettingScreen> {
         const SizedBox(height: 20),
         AppButton(
           label: 'Simpan Profil',
-          onPressed: () {
-            DummyData().currentUser.value = {
-              'name': _nameController.text.trim(),
-              'email': _emailController.text.trim(),
-            };
-            showStatusSnackBar(
-              context,
-              message: 'Profil berhasil disimpan',
-              isSuccess: true,
-            );
+          onPressed: () async {
+            final authProvider = Provider.of<AuthProvider>(context, listen: false);
+            final currentUser = authProvider.firebaseUser;
+            if (currentUser == null) return;
+            
+            final newEmail = _emailController.text.trim();
+            final newName = _nameController.text.trim();
+            
+            try {
+              final user = auth.FirebaseAuth.instance.currentUser;
+              if (user != null) {
+                // Update display name
+                if (newName.isNotEmpty && user.displayName != newName) {
+                  await user.updateDisplayName(newName);
+                }
+                // Update email (requires verification)
+                if (newEmail.isNotEmpty && user.email != newEmail) {
+                  await user.verifyBeforeUpdateEmail(newEmail);
+                }
+                // Refresh AuthProvider so drawer updates
+                await authProvider.refreshUser();
+              }
+              if (mounted) {
+                showStatusSnackBar(
+                  context,
+                  message: 'Profil berhasil disimpan',
+                  type: SnackbarType.success,
+                );
+              }
+            } catch (e) {
+              if (mounted) {
+                showStatusSnackBar(
+                  context,
+                  message: 'Gagal menyimpan profil: $e',
+                  type: SnackbarType.error,
+                );
+              }
+            }
           },
         ),
         const SizedBox(height: 8),
         AppButton(
+          label: 'Ganti Password',
+          variant: AppButtonVariant.secondary,
+          icon: Icons.lock_reset,
+          onPressed: () => _showChangePasswordDialog(context),
+        ),
+        const SizedBox(height: 8),
+        AppButton(
           label: 'Log Out',
-          isPrimary: false,
+          variant: AppButtonVariant.secondary,
           icon: Icons.logout_rounded,
-          onPressed: () {
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              AppRoutes.login,
-              (route) => false,
-            );
+          onPressed: () async {
+            await Provider.of<AuthProvider>(context, listen: false).logout();
+            if (context.mounted) {
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                AppRoutes.login,
+                (route) => false,
+              );
+            }
           },
         ),
       ],
@@ -177,22 +294,22 @@ class _SettingScreenState extends State<SettingScreen> {
         const Padding(
           padding: EdgeInsets.only(bottom: 12),
           child: Text(
-            'Riwayat printer yang pernah terkoneksi.',
+            'Perangkat Bluetooth Terpasang (Paired).',
             style: TextStyle(
               fontSize: 13,
               color: AppColors.textSecondary,
             ),
           ),
         ),
-        ..._printers.asMap().entries.map((entry) {
-          final printer = entry.value;
-          final isConnected = printer['connected'] as bool;
+        if (_isLoadingPrinters) const Center(child: CircularProgressIndicator()),
+        ..._devices.map((device) {
+          final isConnected = PrinterService().selectedDevice?.address == device.address;
           return Container(
             margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(AppDimensions.spacingMD),
             decoration: BoxDecoration(
               color: AppColors.inputFill,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppDimensions.radius),
             ),
             child: Row(
               children: [
@@ -201,7 +318,7 @@ class _SettingScreenState extends State<SettingScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        printer['name'] as String,
+                        device.name ?? 'Unknown Device',
                         style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -209,7 +326,7 @@ class _SettingScreenState extends State<SettingScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '${printer['address']} · ${printer['date']}',
+                        device.address ?? '-',
                         style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
@@ -218,44 +335,28 @@ class _SettingScreenState extends State<SettingScreen> {
                     ],
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isConnected
-                        ? AppColors.success.withValues(alpha: 0.15)
-                        : AppColors.primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    isConnected ? 'Terhubung' : 'Terputus',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: isConnected
-                          ? AppColors.success
-                          : AppColors.primary,
+                if (isConnected)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.success.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(AppDimensions.radius),
                     ),
+                    child: const Text('Terhubung', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.success)),
                   ),
-                ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _printers.removeAt(entry.key);
-                    });
-                    showStatusSnackBar(
-                      context,
-                      message: '${printer['name']} dihapus',
-                      isSuccess: true,
-                    );
+                const SizedBox(width: AppDimensions.spacingSM),
+                IconButton(
+                  onPressed: () async {
+                    if (isConnected) {
+                      await PrinterService().disconnect();
+                    } else {
+                      await PrinterService().connect(device);
+                    }
+                    setState((){});
                   },
-                  child: const Icon(
-                    Icons.delete_outline,
-                    color: AppColors.primary,
-                    size: 22,
+                  icon: Icon(
+                    isConnected ? Icons.bluetooth_connected : Icons.bluetooth,
+                    color: isConnected ? AppColors.success : AppColors.primary,
                   ),
                 ),
               ],
@@ -264,14 +365,15 @@ class _SettingScreenState extends State<SettingScreen> {
         }),
         const SizedBox(height: 4),
         AppButton(
-          label: 'Hubungkan Printer',
-          isPrimary: false,
-          icon: Icons.add,
+          label: 'Segarkan Bluetooth',
+          variant: AppButtonVariant.secondary,
+          icon: Icons.refresh,
           onPressed: () {
+            _loadPrinters();
             showStatusSnackBar(
               context,
-              message: 'Mencari printer... (demo)',
-              isSuccess: true,
+              message: 'Memuat perangkat Bluetooth...',
+              type: SnackbarType.success,
             );
           },
         ),
@@ -285,10 +387,96 @@ class _SettingScreenState extends State<SettingScreen> {
       icon: Icons.receipt_long_outlined,
       title: 'Struk',
       children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppColors.inputFill,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.divider),
+              ),
+              child: _logoFile != null
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(_logoFile!, fit: BoxFit.cover),
+                    )
+                  : const Icon(Icons.image, color: AppColors.textSecondary, size: 32),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: AppButton(
+                label: 'Pilih Logo Struk',
+                variant: AppButtonVariant.secondary,
+                onPressed: _pickLogo,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
         AppTextField(
-          label: 'Logo Struk (URL)',
-          hint: 'https://...',
-          controller: _logoUrlController,
+          label: 'Nama Toko',
+          controller: _storeNameController,
+        ),
+        const SizedBox(height: 12),
+        AppTextField(
+          label: 'Alamat Toko',
+          controller: _storeAddressController,
+        ),
+        const SizedBox(height: 12),
+        AppTextField(
+          label: 'WhatsApp / Telepon Toko',
+          controller: _storePhoneController,
+        ),
+        const SizedBox(height: 12),
+        AppTextField(
+          label: 'Ukuran Logo Struk (Pixel) - Default: 200',
+          controller: _logoSizeController,
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          hint: 'Contoh: 200',
+        ),
+        const SizedBox(height: 12),
+        AppButton(
+          label: 'Simpan Info Toko & Logo',
+          onPressed: () async {
+            final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+            String? logoUrl = settingsProvider.settings?.logoUrl;
+            
+            if (_logoFile != null) {
+              showStatusSnackBar(context, message: 'Mengunggah logo...', type: SnackbarType.success);
+              try {
+                logoUrl = await settingsProvider.uploadLogo(_logoFile!);
+              } catch (e) {
+                if (mounted) showStatusSnackBar(context, message: 'Gagal mengunggah logo: $e', type: SnackbarType.error);
+                return;
+              }
+            }
+            
+            int logoSize = int.tryParse(_logoSizeController.text.trim()) ?? 200;
+            // Batasan ukuran aman untuk printer thermal 58mm (max 380px)
+            if (logoSize < 100) logoSize = 100;
+            if (logoSize > 380) logoSize = 380;
+            _logoSizeController.text = logoSize.toString();
+
+            final newSettings = StoreSettings(
+              name: _storeNameController.text.trim(),
+              address: _storeAddressController.text.trim(),
+              phone: _storePhoneController.text.trim(),
+              logoUrl: logoUrl,
+              logoSize: logoSize,
+              updatedAt: DateTime.now(),
+            );
+            
+            try {
+              await settingsProvider.saveSettings(newSettings);
+              if (mounted) showStatusSnackBar(context, message: 'Info struk berhasil disimpan', type: SnackbarType.success);
+            } catch (e) {
+              if (mounted) showStatusSnackBar(context, message: 'Gagal menyimpan pengaturan: $e', type: SnackbarType.error);
+            }
+          },
         ),
         const SizedBox(height: 16),
 
@@ -408,4 +596,118 @@ class _SettingScreenState extends State<SettingScreen> {
       dense: true,
     );
   }
+
+  Widget _buildStaffManagementSection() {
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, _) {
+        // Hanya Admin yang bisa melihat menu ini
+        if (authProvider.userModel?.role != UserRole.admin) {
+          return const SizedBox.shrink();
+        }
+
+        return _sectionContainer(
+          icon: Icons.people_alt,
+          title: 'Manajemen Staf',
+          children: [
+            const Text(
+              'Tambahkan akun staf baru. Staf akan memiliki akses terbatas ke sistem.',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+            AppButton(
+              label: 'Tambah Akun Staf',
+              icon: Icons.person_add_outlined,
+              onPressed: () => _showAddStaffDialog(context),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showAddStaffDialog(BuildContext context) {
+    final emailCtrl = TextEditingController();
+    final passCtrl = TextEditingController();
+    final nameCtrl = TextEditingController();
+    bool isSaving = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Tambah Akun Staf'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AppTextField(
+                      label: 'Nama Staf',
+                      controller: nameCtrl,
+                      hint: 'Masukkan nama',
+                    ),
+                    const SizedBox(height: 12),
+                    AppTextField(
+                      label: 'Email',
+                      controller: emailCtrl,
+                      hint: 'email@contoh.com',
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                    const SizedBox(height: 12),
+                    AppTextField(
+                      label: 'Password',
+                      controller: passCtrl,
+                      hint: 'Minimal 6 karakter',
+                      obscureText: true,
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSaving ? null : () => Navigator.pop(context),
+                  child: const Text('Batal'),
+                ),
+                ElevatedButton(
+                  onPressed: isSaving
+                      ? null
+                      : () async {
+                          if (emailCtrl.text.isEmpty || passCtrl.text.isEmpty || nameCtrl.text.isEmpty) {
+                            showStatusSnackBar(context, message: 'Semua field harus diisi', type: SnackbarType.error);
+                            return;
+                          }
+                          setState(() => isSaving = true);
+                          try {
+                            await context.read<AuthProvider>().registerStaff(
+                                  emailCtrl.text.trim(),
+                                  passCtrl.text.trim(),
+                                  nameCtrl.text.trim(),
+                                );
+                            if (!mounted) return;
+                            Navigator.pop(context);
+                            showStatusSnackBar(context, message: 'Akun staf berhasil dibuat!', type: SnackbarType.success);
+                          } catch (e) {
+                            setState(() => isSaving = false);
+                            showStatusSnackBar(context, message: 'Gagal membuat akun staf', type: SnackbarType.error);
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+                  child: isSaving
+                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : const Text('Simpan'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
 }
+
+
+
+
+

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/app_dimensions.dart';
 import '../constants/app_colors.dart';
 
 class AppSearchBar extends StatelessWidget {
@@ -42,7 +43,7 @@ class AppSearchBar extends StatelessWidget {
           ),
         ),
         if (onFilterTap != null) ...[
-          const SizedBox(width: 12),
+          const SizedBox(width: AppDimensions.spacingMD),
           Container(
             height: 48,
             width: 48,
@@ -57,10 +58,11 @@ class AppSearchBar extends StatelessWidget {
           ),
         ],
         if (trailing != null) ...[
-          const SizedBox(width: 12),
+          const SizedBox(width: AppDimensions.spacingMD),
           trailing!,
         ],
       ],
     );
   }
 }
+

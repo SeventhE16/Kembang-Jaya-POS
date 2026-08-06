@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_dimensions.dart';
 import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_drawer.dart';
 import '../../core/widgets/app_empty_state.dart';
 import '../../core/widgets/app_text_field.dart';
-import '../../core/widgets/status_dialog.dart';
-import '../../data/dummy/dummy_data.dart';
+import 'package:provider/provider.dart';
+import '../../data/providers/discount_provider.dart';
 import '../../data/models/discount_model.dart';
+import '../../core/widgets/status_dialog.dart';
 import 'add_discount_screen.dart';
 
 class DiscountScreen extends StatefulWidget {
@@ -17,8 +19,6 @@ class DiscountScreen extends StatefulWidget {
 }
 
 class _DiscountScreenState extends State<DiscountScreen> {
-  final DummyData _data = DummyData();
-
   Future<void> _navigateToAddDiscount() async {
     final result = await Navigator.push<bool>(
       context,
@@ -38,9 +38,9 @@ class _DiscountScreenState extends State<DiscountScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radius)),
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(AppDimensions.spacingLG),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,9 +48,9 @@ class _DiscountScreenState extends State<DiscountScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'Edit Diskon',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
                     GestureDetector(
                       onTap: () => Navigator.pop(ctx),
@@ -58,19 +58,19 @@ class _DiscountScreenState extends State<DiscountScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppDimensions.spacingMD),
 
                 AppTextField(
                   label: 'Nama Diskon',
                   hint: 'mis. Diskon Tukang',
                   controller: nameController,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppDimensions.spacingMD),
 
                 // Type radio
                 const Text('Tipe',
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppDimensions.spacingSM),
                 Row(
                   children: [
                     _TypeRadio(
@@ -79,7 +79,7 @@ class _DiscountScreenState extends State<DiscountScreen> {
                       onTap: () => setDialogState(
                           () => selectedType = DiscountType.percent),
                     ),
-                    const SizedBox(width: 24),
+                    const SizedBox(width: AppDimensions.spacingLG),
                     _TypeRadio(
                       label: 'Nominal (Rp)',
                       isSelected: selectedType == DiscountType.nominal,
@@ -88,24 +88,24 @@ class _DiscountScreenState extends State<DiscountScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppDimensions.spacingMD),
 
                 AppTextField(
                   label: 'Nilai',
                   controller: valueController,
                   keyboardType: TextInputType.number,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: AppDimensions.spacingLG),
 
                 AppButton(
                   label: 'Simpan',
-                  onPressed: () {
+                  onPressed: () async {
                     if (nameController.text.trim().isEmpty) {
                       Navigator.pop(ctx);
                       showStatusSnackBar(
                         context,
                         message: 'Nama diskon wajib diisi',
-                        isSuccess: false,
+                        type: SnackbarType.error,
                       );
                       return;
                     }
@@ -116,7 +116,7 @@ class _DiscountScreenState extends State<DiscountScreen> {
                       showStatusSnackBar(
                         context,
                         message: 'Nilai diskon harus lebih dari 0',
-                        isSuccess: false,
+                        type: SnackbarType.error,
                       );
                       return;
                     }
@@ -126,25 +126,26 @@ class _DiscountScreenState extends State<DiscountScreen> {
                       name: nameController.text.trim(),
                       type: selectedType,
                       value: value,
+                      createdAt: discount.createdAt,
+                      updatedAt: DateTime.now(),
                     );
-                    setState(() {
-                      final index = _data.discounts.indexWhere((d) => d.id == discount.id);
-                      if (index != -1) {
-                        _data.discounts[index] = updatedDiscount;
-                      }
-                    });
+                    
+                    await Provider.of<DiscountProvider>(context, listen: false)
+                        .updateDiscount(updatedDiscount);
+                        
+                    if (!mounted) return;
                     Navigator.pop(ctx);
                     showStatusSnackBar(
                       context,
                       message: 'Diskon diperbarui',
-                      isSuccess: true,
+                      type: SnackbarType.success,
                     );
                   },
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppDimensions.spacingSM),
                 AppButton(
                   label: 'Batal',
-                  isPrimary: false,
+                  variant: AppButtonVariant.secondary,
                   onPressed: () => Navigator.pop(ctx),
                 ),
               ],
@@ -167,15 +168,16 @@ class _DiscountScreenState extends State<DiscountScreen> {
             child: const Text('Batal'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
-              setState(() {
-                _data.discounts.removeWhere((d) => d.id == discount.id);
-              });
+              await Provider.of<DiscountProvider>(context, listen: false)
+                  .deleteDiscount(discount.id);
+                  
+              if (!mounted) return;
               showStatusSnackBar(
                 context,
                 message: '${discount.name} dihapus',
-                isSuccess: true,
+                type: SnackbarType.success,
               );
             },
             child: const Text('Hapus', style: TextStyle(color: Colors.red)),
@@ -196,41 +198,49 @@ class _DiscountScreenState extends State<DiscountScreen> {
             onPressed: () => Scaffold.of(ctx).openDrawer(),
           ),
         ),
-        title: const Text(
+        title: Text(
           'Diskon',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          style: Theme.of(context).textTheme.titleLarge,
         ),
       ),
       body: SafeArea(
         top: false,
-        child: Column(
-        children: [
-          const Divider(height: 1),
-          Expanded(
-            child: _data.discounts.isEmpty
-                ? AppEmptyState(
-                    icon: Icons.local_offer_outlined,
-                    title: 'Belum ada diskon',
-                    subtitle: 'Tambah diskon untuk pelanggan',
-                    actionLabel: 'Tambah Diskon',
-                    onAction: _navigateToAddDiscount,
-                  )
-                : ListView.separated(
-                    itemCount: _data.discounts.length,
-                    separatorBuilder: (_, _) => const Divider(height: 1),
-                    itemBuilder: (context, index) {
-                      final discount = _data.discounts[index];
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
-                        child: Row(
-                          children: [
+        child: Consumer<DiscountProvider>(
+          builder: (context, provider, child) {
+            final discounts = provider.discounts;
+            return Column(
+              children: [
+                const Divider(height: 1),
+                if (provider.isLoading)
+                  const Expanded(child: Center(child: CircularProgressIndicator()))
+                else
+                  Expanded(
+                    child: discounts.isEmpty
+                        ? AppEmptyState(
+                            icon: Icons.local_offer_outlined,
+                            title: 'Belum ada diskon',
+                            subtitle: 'Tambah diskon untuk pelanggan',
+                            action: AppButton(
+                              label: 'Tambah Diskon',
+                              onPressed: _navigateToAddDiscount,
+                            ),
+                          )
+                        : ListView.separated(
+                            itemCount: discounts.length,
+                            separatorBuilder: (_, _) => const Divider(height: 1),
+                            itemBuilder: (context, index) {
+                              final discount = discounts[index];
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 12),
+                                child: Row(
+                                  children: [
                             Container(
                               width: 48,
                               height: 48,
                               decoration: BoxDecoration(
                                 color: AppColors.iconLight,
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(AppDimensions.radius),
                               ),
                               child: const Icon(
                                 Icons.local_offer_outlined,
@@ -238,7 +248,7 @@ class _DiscountScreenState extends State<DiscountScreen> {
                                 size: 24,
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: AppDimensions.spacingMD),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -279,7 +289,7 @@ class _DiscountScreenState extends State<DiscountScreen> {
                   ),
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppDimensions.spacingMD),
             child: AppButton(
               label: 'Tambah Diskon',
               icon: Icons.add,
@@ -287,6 +297,8 @@ class _DiscountScreenState extends State<DiscountScreen> {
             ),
           ),
         ],
+      );
+      },
       ),
       ),
     );
@@ -335,9 +347,18 @@ class _TypeRadio extends StatelessWidget {
                 : null,
           ),
           const SizedBox(width: 6),
-          Text(label, style: const TextStyle(fontSize: 14)),
+          Text(label, style: Theme.of(context).textTheme.bodyMedium),
         ],
       ),
     );
   }
 }
+
+
+
+
+
+
+
+
+

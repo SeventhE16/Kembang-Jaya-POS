@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_dimensions.dart';
 import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_empty_state.dart';
 import '../../core/widgets/app_text_field.dart';
-import '../../core/widgets/status_dialog.dart';
-import '../../data/dummy/dummy_data.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import '../../data/providers/fee_provider.dart';
 import '../../data/models/fee_model.dart';
+import '../../core/widgets/status_dialog.dart';
 import 'add_fee_screen.dart';
 
 class FeeScreen extends StatefulWidget {
@@ -16,8 +19,6 @@ class FeeScreen extends StatefulWidget {
 }
 
 class _FeeScreenState extends State<FeeScreen> {
-  final DummyData _data = DummyData();
-
   Future<void> _navigateToAddFee() async {
     final result = await Navigator.push<bool>(
       context,
@@ -35,9 +36,9 @@ class _FeeScreenState extends State<FeeScreen> {
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radius)),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(AppDimensions.spacingLG),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -45,9 +46,9 @@ class _FeeScreenState extends State<FeeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Edit Biaya',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                   GestureDetector(
                     onTap: () => Navigator.pop(ctx),
@@ -55,28 +56,28 @@ class _FeeScreenState extends State<FeeScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppDimensions.spacingMD),
               AppTextField(
                 label: 'Nama Biaya',
                 hint: 'mis. Biaya Antar',
                 controller: nameController,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppDimensions.spacingMD),
               AppTextField(
                 label: 'Nilai (Rp)',
                 controller: valueController,
                 keyboardType: TextInputType.number,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppDimensions.spacingLG),
               AppButton(
                 label: 'Simpan',
-                onPressed: () {
+                onPressed: () async {
                   if (nameController.text.trim().isEmpty) {
                     Navigator.pop(ctx);
                     showStatusSnackBar(
                       context,
                       message: 'Nama biaya wajib diisi',
-                      isSuccess: false,
+                      type: SnackbarType.error,
                     );
                     return;
                   }
@@ -86,7 +87,7 @@ class _FeeScreenState extends State<FeeScreen> {
                     showStatusSnackBar(
                       context,
                       message: 'Nilai biaya tidak boleh negatif',
-                      isSuccess: false,
+                      type: SnackbarType.error,
                     );
                     return;
                   }
@@ -95,25 +96,25 @@ class _FeeScreenState extends State<FeeScreen> {
                     id: fee.id,
                     name: nameController.text.trim(),
                     value: value,
+                      createdAt: DateTime.now(),
+                      updatedAt: DateTime.now(),
                   );
-                  setState(() {
-                    final index = _data.fees.indexWhere((f) => f.id == fee.id);
-                    if (index != -1) {
-                      _data.fees[index] = updatedFee;
-                    }
-                  });
+                  
+                  await Provider.of<FeeProvider>(context, listen: false).updateFee(updatedFee);
+                  
+                  if (!mounted) return;
                   Navigator.pop(ctx);
                   showStatusSnackBar(
                     context,
                     message: 'Biaya diperbarui',
-                    isSuccess: true,
+                    type: SnackbarType.success,
                   );
                 },
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppDimensions.spacingSM),
               AppButton(
                 label: 'Batal',
-                isPrimary: false,
+                variant: AppButtonVariant.secondary,
                 onPressed: () => Navigator.pop(ctx),
               ),
             ],
@@ -135,15 +136,15 @@ class _FeeScreenState extends State<FeeScreen> {
             child: const Text('Batal'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
-              setState(() {
-                _data.fees.removeWhere((f) => f.id == fee.id);
-              });
+              await Provider.of<FeeProvider>(context, listen: false).deleteFee(fee.id);
+              
+              if (!mounted) return;
               showStatusSnackBar(
                 context,
                 message: '${fee.name} dihapus',
-                isSuccess: true,
+                type: SnackbarType.success,
               );
             },
             child: const Text('Hapus', style: TextStyle(color: AppColors.error)),
@@ -157,9 +158,9 @@ class _FeeScreenState extends State<FeeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Daftar Biaya',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          style: Theme.of(context).textTheme.titleLarge,
         ),
         leading: Builder(
           builder: (ctx) => IconButton(
@@ -169,85 +170,95 @@ class _FeeScreenState extends State<FeeScreen> {
         ),
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            const Divider(height: 1),
-            Expanded(
-              child: _data.fees.isEmpty
-                  ? AppEmptyState(
-                      icon: Icons.payments_outlined,
-                      title: 'Belum ada biaya',
-                      subtitle: 'Tambah opsi biaya (mis. ongkir, potong)',
-                      actionLabel: 'Tambah Biaya',
-                      onAction: _navigateToAddFee,
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _data.fees.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final fee = _data.fees[index];
-                        return Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).cardColor,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: AppColors.divider,
-                              width: 0.5,
+        child: Consumer<FeeProvider>(
+          builder: (context, provider, child) {
+            final fees = provider.fees;
+            return Column(
+              children: [
+                const Divider(height: 1),
+                if (provider.isLoading)
+                  const Expanded(child: Center(child: CircularProgressIndicator()))
+                else
+                  Expanded(
+                    child: fees.isEmpty
+                        ? AppEmptyState(
+                            icon: Icons.payments_outlined,
+                            title: 'Belum ada biaya',
+                            subtitle: 'Tambah opsi biaya (mis. ongkir, potong)',
+                            action: AppButton(
+                              label: 'Tambah Biaya',
+                              onPressed: _navigateToAddFee,
                             ),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
+                          )
+                        : ListView.separated(
+                            padding: const EdgeInsets.all(AppDimensions.spacingMD),
+                            itemCount: fees.length,
+                            separatorBuilder: (context, index) => const SizedBox(height: AppDimensions.spacingMD),
+                            itemBuilder: (context, index) {
+                              final fee = fees[index];
+                              return Container(
+                                padding: const EdgeInsets.all(AppDimensions.spacingMD),
                                 decoration: BoxDecoration(
-                                  color: Colors.blue.shade50,
-                                  shape: BoxShape.circle,
+                                  color: Theme.of(context).cardColor,
+                                  borderRadius: BorderRadius.circular(AppDimensions.radius),
+                                  border: Border.all(
+                                    color: AppColors.divider,
+                                    width: 0.5,
+                                  ),
                                 ),
-                                child: Icon(Icons.payments_outlined, color: Colors.blue.shade600),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                child: Row(
                                   children: [
-                                    Text(
-                                      fee.name,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
+                                    Container(
+                                      padding: const EdgeInsets.all(AppDimensions.spacingMD),
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue.shade50,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(Icons.payments_outlined, color: Colors.blue.shade600),
+                                    ),
+                                    const SizedBox(width: AppDimensions.spacingMD),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            fee.name,
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            'Rp ${NumberFormat.currency(locale: 'id_ID', symbol: '', decimalDigits: 0).format(fee.value)}',
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              color: AppColors.textSecondary,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Rp ${DummyData.formatCurrency(fee.value.toInt())}',
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        color: AppColors.textSecondary,
-                                      ),
+                                    IconButton(
+                                      icon: const Icon(Icons.edit_outlined, color: AppColors.primary),
+                                      onPressed: () => _showEditFeeDialog(fee),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete_outline, color: AppColors.error),
+                                      onPressed: () => _deleteFee(fee),
                                     ),
                                   ],
                                 ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.edit_outlined, color: AppColors.primary),
-                                onPressed: () => _showEditFeeDialog(fee),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete_outline, color: AppColors.error),
-                                onPressed: () => _deleteFee(fee),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
+                              );
+                            },
                     ),
             ),
           ],
-        ),
+        );
+       },
       ),
-      floatingActionButton: _data.fees.isNotEmpty
+      ),
+      floatingActionButton: Provider.of<FeeProvider>(context).fees.isNotEmpty
           ? FloatingActionButton(
               onPressed: _navigateToAddFee,
               backgroundColor: AppColors.primary,
@@ -257,3 +268,12 @@ class _FeeScreenState extends State<FeeScreen> {
     );
   }
 }
+
+
+
+
+
+
+
+
+

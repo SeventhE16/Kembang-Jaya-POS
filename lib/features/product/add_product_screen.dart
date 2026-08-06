@@ -3,8 +3,24 @@ import '../../core/constants/app_colors.dart';
 import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_text_field.dart';
 import '../../core/widgets/status_dialog.dart';
-import '../../data/dummy/dummy_data.dart';
+import 'package:provider/provider.dart';
+import '../../data/providers/product_provider.dart';
 import '../../data/models/product_model.dart';
+
+class WholesalePriceEntry {
+  final TextEditingController qtyController;
+  final TextEditingController priceController;
+
+  WholesalePriceEntry({
+    required this.qtyController,
+    required this.priceController,
+  });
+
+  void dispose() {
+    qtyController.dispose();
+    priceController.dispose();
+  }
+}
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({super.key});
@@ -22,7 +38,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final _unitController = TextEditingController(text: 'pcs');
   bool _trackStock = true;
   
-  final DummyData _data = DummyData();
+  final List<WholesalePriceEntry> _wholesaleEntries = [];
 
   @override
   void dispose() {
@@ -32,18 +48,45 @@ class _AddProductScreenState extends State<AddProductScreen> {
     _sellPriceController.dispose();
     _stockController.dispose();
     _unitController.dispose();
+    for (var entry in _wholesaleEntries) {
+      entry.dispose();
+    }
     super.dispose();
   }
 
-  void _handleAdd() {
+  void _addWholesaleEntry() {
+    setState(() {
+      _wholesaleEntries.add(WholesalePriceEntry(
+        qtyController: TextEditingController(text: ''),
+        priceController: TextEditingController(text: ''),
+      ));
+    });
+  }
+
+  void _removeWholesaleEntry(int index) {
+    setState(() {
+      _wholesaleEntries[index].dispose();
+      _wholesaleEntries.removeAt(index);
+    });
+  }
+
+  void _handleAdd() async {
     if (_nameController.text.trim().isEmpty) {
       showStatusSnackBar(
         context,
         message: 'Nama barang wajib diisi',
-        isSuccess: false,
+        type: SnackbarType.error,
       );
       return;
     }
+
+    final wholesalePrices = _wholesaleEntries
+        .map((e) => WholesalePrice(
+              minQty: int.tryParse(e.qtyController.text) ?? 0,
+              price: double.tryParse(e.priceController.text) ?? 0,
+            ))
+        .where((e) => e.minQty > 0 && e.price > 0)
+        .toList();
 
     final newProduct = Product(
       id: 'P${DateTime.now().millisecondsSinceEpoch}',
@@ -55,17 +98,22 @@ class _AddProductScreenState extends State<AddProductScreen> {
       basePrice: double.tryParse(_basePriceController.text) ?? 0,
       sellPrice: double.tryParse(_sellPriceController.text) ?? 0,
       stock: int.tryParse(_stockController.text) ?? 0,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
       trackStock: _trackStock,
+      wholesalePrices: wholesalePrices,
     );
 
-    _data.products.add(newProduct);
+    await Provider.of<ProductProvider>(context, listen: false).addProduct(newProduct);
     
-    showStatusSnackBar(
-      context,
-      message: 'Produk ditambahkan',
-      isSuccess: true,
-    );
-    Navigator.pop(context, true);
+    if (mounted) {
+      showStatusSnackBar(
+        context,
+        message: 'Produk ditambahkan',
+        type: SnackbarType.success,
+      );
+      Navigator.pop(context, true);
+    }
   }
 
   @override
@@ -192,6 +240,70 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 24),
+                    
+                    // Wholesale prices section
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Harga Grosir (Opsional)',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: _addWholesaleEntry,
+                          icon: const Icon(Icons.add, size: 18),
+                          label: const Text('Tambah'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    if (_wholesaleEntries.isEmpty)
+                      const Text(
+                        'Belum ada harga grosir yang ditambahkan.',
+                        style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                      ),
+                    ...List.generate(_wholesaleEntries.length, (index) {
+                      final entry = _wholesaleEntries[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: AppTextField(
+                                label: 'Min Qty',
+                                controller: entry.qtyController,
+                                keyboardType: TextInputType.number,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              flex: 3,
+                              child: AppTextField(
+                                label: 'Harga Grosir',
+                                controller: entry.priceController,
+                                keyboardType: TextInputType.number,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              onPressed: () => _removeWholesaleEntry(index),
+                              icon: const Icon(Icons.delete_outline),
+                              color: AppColors.error,
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
                   ],
                 ),
               ),
@@ -216,7 +328,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   const SizedBox(height: 12),
                   AppButton(
                     label: 'Batal',
-                    isPrimary: false,
+                    variant: AppButtonVariant.secondary,
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/app_dimensions.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_text_field.dart';
 import '../../core/widgets/status_dialog.dart';
-import '../../data/dummy/dummy_data.dart';
+import 'package:provider/provider.dart';
+import '../../data/providers/fee_provider.dart';
 import '../../data/models/fee_model.dart';
 
 class AddFeeScreen extends StatefulWidget {
@@ -24,12 +26,12 @@ class _AddFeeScreenState extends State<AddFeeScreen> {
     super.dispose();
   }
 
-  void _onTambah() {
+  Future<void> _onTambah() async {
     if (_nameController.text.trim().isEmpty) {
       showStatusSnackBar(
         context,
         message: 'Nama biaya wajib diisi',
-        isSuccess: false,
+        type: SnackbarType.error,
       );
       return;
     }
@@ -39,7 +41,7 @@ class _AddFeeScreenState extends State<AddFeeScreen> {
       showStatusSnackBar(
         context,
         message: 'Nilai biaya tidak boleh negatif',
-        isSuccess: false,
+        type: SnackbarType.error,
       );
       return;
     }
@@ -48,14 +50,17 @@ class _AddFeeScreenState extends State<AddFeeScreen> {
       id: 'F${DateTime.now().millisecondsSinceEpoch}',
       name: _nameController.text.trim(),
       value: value,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
     );
 
-    DummyData().fees.add(newFee);
+    await Provider.of<FeeProvider>(context, listen: false).addFee(newFee);
 
+    if (!mounted) return;
     showStatusSnackBar(
       context,
       message: 'Biaya ditambahkan',
-      isSuccess: true,
+      type: SnackbarType.success,
     );
     Navigator.pop(context, true);
   }
@@ -71,7 +76,7 @@ class _AddFeeScreenState extends State<AddFeeScreen> {
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppDimensions.spacingLG),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -83,21 +88,21 @@ class _AddFeeScreenState extends State<AddFeeScreen> {
                 color: AppColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppDimensions.spacingMD),
             
             AppTextField(
               label: 'Nama Biaya',
               hint: 'mis. Biaya Antar, Biaya Potong',
               controller: _nameController,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppDimensions.spacingMD),
             
             AppTextField(
               label: 'Nilai (Rp)',
               controller: _valueController,
               keyboardType: TextInputType.number,
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: AppDimensions.spacingXL),
             
             AppButton(
               label: 'Tambah Biaya',
@@ -109,3 +114,6 @@ class _AddFeeScreenState extends State<AddFeeScreen> {
     );
   }
 }
+
+
+

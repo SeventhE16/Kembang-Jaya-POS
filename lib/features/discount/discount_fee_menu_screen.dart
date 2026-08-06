@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_dimensions.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/widgets/app_drawer.dart';
 
@@ -11,7 +12,7 @@ class DiscountFeeMenuScreen extends StatelessWidget {
     return Scaffold(
       drawer: const AppDrawer(currentRoute: AppRoutes.discountMenu),
       appBar: AppBar(
-        title: const Text('Diskon, Biaya', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+        title: Text('Diskon, Biaya', style: Theme.of(context).textTheme.titleLarge),
         leading: Builder(
           builder: (ctx) => IconButton(
             icon: const Icon(Icons.menu, size: 26),
@@ -33,7 +34,7 @@ class DiscountFeeMenuScreen extends StatelessWidget {
                 color: AppColors.primary,
                 route: AppRoutes.discount,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppDimensions.spacingLG),
               _buildMenuCard(
                 context,
                 title: 'Biaya',
@@ -59,23 +60,23 @@ class DiscountFeeMenuScreen extends StatelessWidget {
   }) {
     return Material(
       color: Theme.of(context).cardColor,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(AppDimensions.radius),
       elevation: 2,
       child: InkWell(
         onTap: () {
           Navigator.pushNamed(context, route);
         },
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppDimensions.radius),
         child: Container(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(AppDimensions.spacingLG),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppDimensions.radius),
             border: Border.all(color: AppColors.divider, width: 0.5),
           ),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppDimensions.spacingMD),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
@@ -107,3 +108,7 @@ class DiscountFeeMenuScreen extends StatelessWidget {
     );
   }
 }
+
+
+
+

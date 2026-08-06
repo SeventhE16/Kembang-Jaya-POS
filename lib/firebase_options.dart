@@ -56,7 +56,6 @@ class DefaultFirebaseOptions {
     projectId: 'depot-kayu-pos',
     storageBucket: 'depot-kayu-pos.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyCk8hBXTikQT1qLEz4aXBTa3ZsGA538n_o',
     appId: '1:609384542584:ios:ecfca2cf8230dbc30fd88d',
@@ -65,7 +64,6 @@ class DefaultFirebaseOptions {
     storageBucket: 'depot-kayu-pos.firebasestorage.app',
     iosBundleId: 'com.example.depotKayuApp',
   );
-
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyCk8hBXTikQT1qLEz4aXBTa3ZsGA538n_o',
     appId: '1:609384542584:ios:ecfca2cf8230dbc30fd88d',

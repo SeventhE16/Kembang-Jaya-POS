@@ -1,28 +1,15 @@
 import 'package:flutter/material.dart';
-import '../../core/constants/app_colors.dart';
-import '../../core/widgets/app_button.dart';
-import '../../core/widgets/app_text_field.dart';
-import '../../core/widgets/status_dialog.dart';
+import '../../core/constants/app_dimensions.dart';
+import '../../core/constants/app_routes.dart';
+import '../../core/widgets/app_drawer.dart';
+import '../../core/widgets/app_empty_state.dart';
 import '../../core/widgets/product_card.dart';
-import '../../data/dummy/dummy_data.dart';
+import '../../core/widgets/status_dialog.dart';
+import 'package:provider/provider.dart';
+import '../../data/providers/product_provider.dart';
+import '../../data/providers/restock_cart_provider.dart';
 import '../../data/models/product_model.dart';
 import '../../data/models/transaction_model.dart';
-
-class RestockCartItem {
-  final Product product;
-  int quantity;
-  double costPerUnit;
-  String? note;
-
-  RestockCartItem({
-    required this.product,
-    required this.quantity,
-    required this.costPerUnit,
-    this.note,
-  });
-
-  double get totalCost => quantity * costPerUnit;
-}
 
 class AddStockScreen extends StatefulWidget {
   const AddStockScreen({super.key});
@@ -32,218 +19,39 @@ class AddStockScreen extends StatefulWidget {
 }
 
 class _AddStockScreenState extends State<AddStockScreen> {
-  final DummyData _data = DummyData();
-  final Map<String, RestockCartItem> _cart = {};
-  
-  String _searchQuery = '';
-  String _selectedCategory = 'Semua';
   final TextEditingController _searchController = TextEditingController();
+  String _selectedCategory = 'Semua';
+  String _searchQuery = '';
 
-  List<Product> get _filteredProducts {
-    return _data.products.where((p) {
-      if (!p.trackStock) return false;
-      final matchesSearch = p.name.toLowerCase().contains(_searchQuery.toLowerCase());
-      final matchesCategory = _selectedCategory == 'Semua' || p.category == _selectedCategory;
-      return matchesSearch && matchesCategory;
+  List<Product> _getFilteredProducts(List<Product> allProducts) {
+    return allProducts.where((p) {
+      final matchesCategory =
+          _selectedCategory == 'Semua' || p.category == _selectedCategory;
+      final matchesSearch = _searchQuery.isEmpty ||
+          p.name.toLowerCase().contains(_searchQuery.toLowerCase());
+      return matchesCategory && matchesSearch;
     }).toList();
   }
 
-  double get _totalCartCost => _cart.values.fold(0, (sum, item) => sum + item.totalCost);
-
-  void _showAddItemSheet(Product product) {
-    final qtyController = TextEditingController(text: '1');
-    final costController = TextEditingController(text: product.basePrice.toInt().toString());
-    final noteController = TextEditingController();
-
-    // Pre-fill if already in cart
-    if (_cart.containsKey(product.id)) {
-      final existing = _cart[product.id]!;
-      qtyController.text = existing.quantity.toString();
-      costController.text = existing.costPerUnit.toInt().toString();
-      noteController.text = existing.note ?? '';
-    }
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
-          left: 20,
-          right: 20,
-          top: 20,
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Restock ${product.name}',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(ctx),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: AppTextField(
-                      label: 'Kuantitas',
-                      controller: qtyController,
-                      keyboardType: TextInputType.number,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: AppTextField(
-                      label: 'Modal / Unit',
-                      controller: costController,
-                      keyboardType: TextInputType.number,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              
-              AppTextField(
-                label: 'Catatan (opsional)',
-                controller: noteController,
-              ),
-              const SizedBox(height: 24),
-
-              Row(
-                children: [
-                  if (_cart.containsKey(product.id)) ...[
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          setState(() {
-                            _cart.remove(product.id);
-                          });
-                          Navigator.pop(ctx);
-                        },
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.error,
-                          side: const BorderSide(color: AppColors.error),
-                        ),
-                        child: const Text('Hapus'),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                  ],
-                  Expanded(
-                    flex: 2,
-                    child: AppButton(
-                      label: 'Simpan',
-                      onPressed: () {
-                        final qty = int.tryParse(qtyController.text) ?? 0;
-                        if (qty <= 0) {
-                          showStatusSnackBar(context, message: 'Kuantitas harus lebih dari 0', isSuccess: false);
-                          return;
-                        }
-                        final cost = double.tryParse(costController.text) ?? 0;
-                        
-                        setState(() {
-                          _cart[product.id] = RestockCartItem(
-                            product: product,
-                            quantity: qty,
-                            costPerUnit: cost,
-                            note: noteController.text.trim().isEmpty ? null : noteController.text.trim(),
-                          );
-                        });
-                        Navigator.pop(ctx);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  void _addToCart(Product product, RestockCartProvider cartProvider) {
+    setState(() {
+      cartProvider.addItem(CartItem(product: product, quantity: 1));
+    });
   }
 
-  void _finishPurchase() {
-    if (_cart.isEmpty) return;
-
-    // Process all items
-    for (var item in _cart.values) {
-      final entry = StockEntry(
-        id: 'SE${DateTime.now().millisecondsSinceEpoch}',
-        product: item.product,
-        quantity: item.quantity,
-        totalCost: item.totalCost,
-        note: item.note,
-        date: DateTime.now(),
+  void _showCheckout(RestockCartProvider cartProvider) {
+    if (cartProvider.activeCart.isEmpty) {
+      showStatusSnackBar(
+        context,
+        message: 'Keranjang masih kosong',
+        type: SnackbarType.error,
       );
-      _data.stockEntries.add(entry);
-      item.product.stock += item.quantity;
+      return;
     }
 
-    _showReceiptDialog();
-  }
-
-  void _showReceiptDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.check_circle, color: AppColors.success, size: 64),
-              const SizedBox(height: 16),
-              const Text('Restock Berhasil', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              const Text('Stok barang telah ditambahkan.', textAlign: TextAlign.center),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        setState(() {
-                          _cart.clear();
-                        });
-                        Navigator.pop(ctx);
-                      },
-                      child: const Text('Tutup'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        showStatusSnackBar(context, message: 'Mencetak struk restock...', isSuccess: true);
-                      },
-                      child: const Text('Cetak Struk'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    Navigator.pushNamed(context, AppRoutes.restockCart).then((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -254,152 +62,162 @@ class _AddStockScreenState extends State<AddStockScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final productProvider = Provider.of<ProductProvider>(context);
+    final cartProvider = Provider.of<RestockCartProvider>(context);
+    final products = productProvider.products;
+    final totalCartItems = cartProvider.activeCart.values.fold(0, (sum, item) => sum + item.quantity);
     return Scaffold(
+      drawer: const AppDrawer(currentRoute: AppRoutes.stock),
       appBar: AppBar(
-        title: const Text('Catat Pembelian'),
-        leading: IconButton(
-          icon: const Icon(Icons.chevron_left, size: 28),
-          onPressed: () => Navigator.pop(context),
+        title: Text(
+          'Catat Pembelian',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu, size: 26),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
+          ),
         ),
       ),
       body: SafeArea(
         top: false,
-        child: Column(
+        child: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Column(
           children: [
-            // Search bar
+            // Divider line
+            const Divider(height: 1),
+
+            // Search bar + action buttons
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: TextField(
-                controller: _searchController,
-                onChanged: (value) => setState(() => _searchQuery = value),
-                decoration: InputDecoration(
-                  hintText: 'Cari Nama atau kode barang',
-                  prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+              padding: const EdgeInsets.fromLTRB(AppDimensions.spacingMD, 12, AppDimensions.spacingMD, 0),
+              child: Row(
+                children: [
+                  // Search field
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (value) => setState(() => _searchQuery = value),
+                      decoration: const InputDecoration(
+                        hintText: 'Cari Nama atau kode barang',
+                        prefixIcon: Icon(Icons.search),
+                      ),
+                    ),
                   ),
-                  filled: true,
-                  fillColor: AppColors.inputFill,
-                ),
+                  const SizedBox(width: AppDimensions.spacingSM),
+                  // Add product button
+                  IconButton(
+                    icon: const Icon(Icons.add, size: AppDimensions.iconSizeLG),
+                    color: Theme.of(context).colorScheme.primary,
+                    onPressed: () {
+                      Navigator.pushNamed(context, AppRoutes.product);
+                    },
+                  ),
+                ],
               ),
             ),
-            
+
             // Category chips
             SizedBox(
-              height: 56,
+              height: 64,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                itemCount: _data.categories.length,
+                padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacingMD, vertical: AppDimensions.spacingSM),
+                itemCount: productProvider.categories.length + 1,
                 itemBuilder: (context, index) {
-                  final category = _data.categories[index];
+                  final category = index == 0 ? 'Semua' : productProvider.categories[index - 1];
                   final isSelected = category == _selectedCategory;
                   return Padding(
-                    padding: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsets.only(right: AppDimensions.spacingSM),
                     child: ChoiceChip(
                       label: Text(
                         category,
                         style: TextStyle(
-                          color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
+                          color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color,
                           fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                         ),
                       ),
                       selected: isSelected,
                       onSelected: (_) =>
                           setState(() => _selectedCategory = category),
-                      backgroundColor: AppColors.chipInactive,
-                      selectedColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      side: BorderSide.none,
-                      showCheckmark: false,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
                   );
                 },
               ),
             ),
 
-            // Product List
+            // Product list
             Expanded(
-              child: _filteredProducts.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.search_off_rounded, size: 64, color: AppColors.textHint),
-                          const SizedBox(height: 16),
-                          const Text(
-                            'Produk tidak ditemukan',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          const Text(
-                            'Coba ubah kata kunci atau filter kategori',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
+              child: _getFilteredProducts(products).isEmpty
+                  ? const AppEmptyState(
+                      icon: Icons.search_off_rounded,
+                      title: 'Produk tidak ditemukan',
+                      subtitle: 'Coba ubah kata kunci atau filter kategori',
                     )
                   : ListView.builder(
-                      itemCount: _filteredProducts.length,
+                      itemCount: _getFilteredProducts(products).length,
                       itemBuilder: (context, index) {
-                        final product = _filteredProducts[index];
-                        final cartQty = _cart[product.id]?.quantity ?? 0;
+                        final product = _getFilteredProducts(products)[index];
+                        final cartQty = cartProvider.activeCart[product.id]?.quantity ?? 0;
                         return ProductCard(
                           product: product,
                           cartQuantity: cartQty,
-                          onAdd: () => _showAddItemSheet(product),
+                          onAdd: () => _addToCart(product, cartProvider),
                         );
                       },
                     ),
             ),
-            
-            // Bottom Bar
+
+            // Bottom cart bar
             Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).scaffoldBackgroundColor,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, -5),
-                  ),
-                ],
-              ),
+              padding: const EdgeInsets.fromLTRB(AppDimensions.spacingMD, AppDimensions.spacingSM, AppDimensions.spacingMD, AppDimensions.spacingMD),
               child: Row(
                 children: [
+                  // Cart bar
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text('Total Pembelian', style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text(
-                          'Rp ${DummyData.formatCurrency(_totalCartCost.toInt())}',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary),
+                    child: GestureDetector(
+                      onTap: () => _showCheckout(cartProvider),
+                      child: Container(
+                        height: 56, // Accessible tap target
+                        decoration: BoxDecoration(
+                          color: totalCartItems > 0 ? Theme.of(context).colorScheme.primary : Theme.of(context).disabledColor.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(AppDimensions.radiusLG),
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _cart.isEmpty ? null : _finishPurchase,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _cart.isEmpty ? AppColors.stockEmpty : AppColors.primary,
+                        child: Row(
+                          children: [
+                            const SizedBox(width: AppDimensions.spacingLG),
+                            Text(
+                              '$totalCartItems',
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const Text(
+                              ' Barang',
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                            const Spacer(),
+                            const Text(
+                              'LANJUT',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(width: AppDimensions.spacingXS),
+                            const Icon(Icons.chevron_right, color: Colors.white, size: AppDimensions.iconSize),
+                            const SizedBox(width: AppDimensions.spacingMD),
+                          ],
+                        ),
                       ),
-                      child: const Text('Selesaikan'),
                     ),
                   ),
                 ],
@@ -407,7 +225,9 @@ class _AddStockScreenState extends State<AddStockScreen> {
             ),
           ],
         ),
+        ),
       ),
     );
   }
 }
+

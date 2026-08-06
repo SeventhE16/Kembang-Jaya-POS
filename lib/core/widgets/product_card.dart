@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/app_dimensions.dart';
 import '../../data/models/product_model.dart';
 import '../constants/app_colors.dart';
 
@@ -47,7 +48,7 @@ class ProductCard extends StatelessWidget {
               size: 24,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppDimensions.spacingMD),
 
           // Info
           Expanded(
@@ -153,3 +154,4 @@ class ProductCard extends StatelessWidget {
     );
   }
 }
+
