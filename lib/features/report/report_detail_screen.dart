@@ -22,6 +22,8 @@ class ReportDetailScreen extends StatelessWidget {
 
     final currencyFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
+    bool isPurchase = transactions.isNotEmpty && transactions.every((t) => t.type == 'purchase');
+
     double totalPendapatan = 0;
     double totalKeuntungan = 0;
 
@@ -69,9 +71,11 @@ class ReportDetailScreen extends StatelessWidget {
                 children: [
                   _buildSummaryItem('Jml Transaksi', '${transactions.length}'),
                   const VerticalDivider(color: Colors.white54, thickness: 1),
-                  _buildSummaryItem('Pendapatan', currencyFormat.format(totalPendapatan)),
-                  const VerticalDivider(color: Colors.white54, thickness: 1),
-                  _buildSummaryItem('Keuntungan', currencyFormat.format(totalKeuntungan)),
+                  _buildSummaryItem(isPurchase ? 'Total Pengeluaran' : 'Pendapatan', currencyFormat.format(totalPendapatan)),
+                  if (!isPurchase) ...[
+                    const VerticalDivider(color: Colors.white54, thickness: 1),
+                    _buildSummaryItem('Keuntungan', currencyFormat.format(totalKeuntungan)),
+                  ],
                 ],
               ),
             ),

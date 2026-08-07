@@ -126,9 +126,10 @@ class _ReportScreenState extends State<ReportScreen> {
 
     for (var i in insts) {
       final key = _labelForDate(i.date);
-      grouped.putIfAbsent(key, () => {'label': key, 'uang_masuk': 0.0, 'count': 0, 'sortDate': i.date});
+      grouped.putIfAbsent(key, () => {'label': key, 'uang_masuk': 0.0, 'count': 0, 'sortDate': i.date, 'items': <InstallmentPayment>[]});
       grouped[key]!['uang_masuk'] = (grouped[key]!['uang_masuk'] as double) + i.amount;
       grouped[key]!['count'] = (grouped[key]!['count'] as int) + 1;
+      (grouped[key]!['items'] as List<InstallmentPayment>).add(i);
     }
 
     final result = grouped.values.toList();
@@ -946,8 +947,17 @@ class _ReportScreenState extends State<ReportScreen> {
           final label = item['label'] as String;
           final count = item['count'] as int;
           final uangMasuk = item['uang_masuk'] as double;
+          final items = item['items'] as List<InstallmentPayment>;
 
-          return Container(
+          return InkWell(
+            onTap: () {
+              Navigator.pushNamed(context, '/installment_detail', arguments: {
+                'title': 'Cicilan Masuk - $label',
+                'installments': items,
+                'isOutgoing': false,
+              });
+            },
+            child: Container(
             margin: const EdgeInsets.only(bottom: 1),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             decoration: BoxDecoration(
@@ -1064,8 +1074,17 @@ class _ReportScreenState extends State<ReportScreen> {
           final label = item['label'] as String;
           final count = item['count'] as int;
           final uangKeluar = item['uang_masuk'] as double; // reused the key from aggregation
+          final items = item['items'] as List<InstallmentPayment>;
 
-          return Container(
+          return InkWell(
+            onTap: () {
+              Navigator.pushNamed(context, '/installment_detail', arguments: {
+                'title': 'Cicilan Keluar - $label',
+                'installments': items,
+                'isOutgoing': true,
+              });
+            },
+            child: Container(
             margin: const EdgeInsets.only(bottom: 1),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             decoration: BoxDecoration(

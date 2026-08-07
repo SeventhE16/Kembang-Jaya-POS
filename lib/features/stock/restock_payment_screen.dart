@@ -161,6 +161,14 @@ class _RestockPaymentScreenState extends State<RestockPaymentScreen> {
                 Navigator.pop(ctx);
               },
             ),
+            ListTile(
+              title: const Text('Diskon Manual (Nominal)'),
+              trailing: const Icon(Icons.edit, size: 16),
+              onTap: () {
+                Navigator.pop(ctx);
+                _showCustomDiscountDialog();
+              },
+            ),
             ...Provider.of<DiscountProvider>(context, listen: false).discounts.map((d) => ListTile(
               title: Text(d.name),
               subtitle: Text(d.type == DiscountType.nominal 
@@ -176,6 +184,38 @@ class _RestockPaymentScreenState extends State<RestockPaymentScreen> {
             )),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showCustomDiscountDialog() {
+    final TextEditingController ctrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Diskon Manual'),
+        content: TextField(
+          controller: ctrl,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Nominal Diskon (Rp)',
+            prefixText: 'Rp ',
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
+          ElevatedButton(
+            onPressed: () {
+              final val = double.tryParse(ctrl.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+              setState(() {
+                _cart.setDiscount(null);
+                _cart.setExtraDiscount(val);
+              });
+              Navigator.pop(ctx);
+            },
+            child: const Text('Simpan'),
+          ),
+        ],
       ),
     );
   }
