@@ -446,7 +446,7 @@ class _ReportScreenState extends State<ReportScreen> {
         const SizedBox(height: 16),
 
         // List per period
-        ...aggregated.reversed.map((item) => _buildSalesListItem(item, _filteredTransactions(provider))),
+        ...aggregated.reversed.map((item) => _buildSalesListItem(item, transactions)),
       ],
     );
   }
