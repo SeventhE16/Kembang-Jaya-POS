@@ -999,8 +999,9 @@ class _ReportScreenState extends State<ReportScreen> {
                 const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textSecondary),
               ],
             ),
-          );
-        }),
+          ),
+        );
+      }),
       ],
     );
   }
@@ -1126,8 +1127,9 @@ class _ReportScreenState extends State<ReportScreen> {
                 const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textSecondary),
               ],
             ),
-          );
-        }),
+          ),
+        );
+      }),
       ],
     );
   }
