@@ -406,6 +406,13 @@ class _ReportScreenState extends State<ReportScreen> {
     final aggregated = _aggregateTransactions(transactions);
 
     final totalPendapatan = transactions.fold<double>(0, (sum, t) => sum + t.total);
+    final totalKeuntungan = transactions.fold<double>(0, (sum, t) {
+      double costBasis = 0;
+      for (var item in t.items) {
+        costBasis += item.product.basePrice * item.quantity;
+      }
+      return sum + (t.total - costBasis);
+    });
     final totalTransaksi = transactions.length;
 
     return Column(
@@ -414,7 +421,7 @@ class _ReportScreenState extends State<ReportScreen> {
         _buildSummaryBar(
           jumlahTransaksi: totalTransaksi,
           pendapatan: totalPendapatan,
-          keuntungan: 0, // Ignored now
+          keuntungan: totalKeuntungan,
         ),
         const SizedBox(height: 16),
 
@@ -582,6 +589,8 @@ class _ReportScreenState extends State<ReportScreen> {
           Expanded(child: _summaryItem('Jml Transaksi', jumlahTransaksi.toString())),
           Container(width: 1, height: 36, color: Colors.white24),
           Expanded(child: _summaryItem('Pendapatan', 'Rp ${_currencyFormat.format(pendapatan)}')),
+          Container(width: 1, height: 36, color: Colors.white24),
+          Expanded(child: _summaryItem('Keuntungan', 'Rp ${_currencyFormat.format(keuntungan)}')),
         ],
       ),
     );
@@ -752,6 +761,7 @@ class _ReportScreenState extends State<ReportScreen> {
     final label = item['label'] as String;
     final count = item['count'] as int;
     final pendapatan = item['pendapatan'] as double;
+    final keuntungan = item['keuntungan'] as double;
 
     return InkWell(
       onTap: () {
@@ -793,6 +803,12 @@ class _ReportScreenState extends State<ReportScreen> {
                   Text(
                     'Rp ${_currencyFormat.format(pendapatan)}',
                     style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text('Keuntungan', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                  Text(
+                    'Rp ${_currencyFormat.format(keuntungan)}',
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.primary),
                   ),
                 ],
               ),

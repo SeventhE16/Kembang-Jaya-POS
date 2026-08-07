@@ -25,8 +25,16 @@ class ReportDetailScreen extends StatelessWidget {
     bool isPurchase = transactions.isNotEmpty && transactions.every((t) => t.type == 'purchase');
 
     double totalPendapatan = 0;
+    double totalKeuntungan = 0;
+
     for (var tx in transactions) {
       totalPendapatan += tx.total;
+      
+      double costBasis = 0;
+      for (var item in tx.items) {
+        costBasis += item.product.basePrice * item.quantity;
+      }
+      totalKeuntungan += (tx.total - costBasis);
     }
 
     return Scaffold(
@@ -64,6 +72,10 @@ class ReportDetailScreen extends StatelessWidget {
                   _buildSummaryItem('Jml Transaksi', '${transactions.length}'),
                   const VerticalDivider(color: Colors.white54, thickness: 1),
                   _buildSummaryItem(isPurchase ? 'Total Pengeluaran' : 'Pendapatan', currencyFormat.format(totalPendapatan)),
+                  if (!isPurchase) ...[
+                    const VerticalDivider(color: Colors.white54, thickness: 1),
+                    _buildSummaryItem('Keuntungan', currencyFormat.format(totalKeuntungan)),
+                  ],
                 ],
               ),
             ),
@@ -78,6 +90,12 @@ class ReportDetailScreen extends StatelessWidget {
               itemBuilder: (context, index) {
                 final tx = transactions[index];
                 
+                double costBasis = 0;
+                for (var item in tx.items) {
+                  costBasis += item.product.basePrice * item.quantity;
+                }
+                final keuntungan = tx.total - costBasis;
+
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: AppDimensions.spacingMD),
                   child: Row(
@@ -121,7 +139,16 @@ class ReportDetailScreen extends StatelessWidget {
                                 Text(currencyFormat.format(tx.total), style: const TextStyle(fontWeight: FontWeight.bold)),
                               ],
                             ),
-
+                            if (tx.type != 'purchase') ...[
+                              const SizedBox(height: 4),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text('Keuntungan', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                                  Text(currencyFormat.format(keuntungan), style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.success)),
+                                ],
+                              ),
+                            ],
                             const SizedBox(height: 8),
                             Row(
                               children: [
