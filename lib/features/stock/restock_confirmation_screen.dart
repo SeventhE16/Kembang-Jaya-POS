@@ -115,7 +115,7 @@ class _RestockConfirmationScreenState extends State<RestockConfirmationScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('${item.quantity} x ${_currencyFormat.format(item.unitPrice)}', style: const TextStyle(fontSize: 13, color: Colors.black)),
+                      Text('${item.quantity} x ${_currencyFormat.format(item.unitPrice - item.itemDiscount)}', style: const TextStyle(fontSize: 13, color: Colors.black)),
                       Text(_currencyFormat.format(item.subtotal), style: const TextStyle(fontSize: 13, color: Colors.black)),
                     ],
                   ),
@@ -197,14 +197,14 @@ class _RestockConfirmationScreenState extends State<RestockConfirmationScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(DateFormat('dd-MM-yyyy').format(DateTime.now()), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black)),
-                Text(user?.displayName ?? 'Staff', style: const TextStyle(fontSize: 13, color: Colors.black)),
+                Text(DateFormat('dd-MM-yyyy').format(transaction?.date ?? DateTime.now()), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black)),
+                Text(transaction?.cashierName ?? user?.displayName ?? 'Staff', style: const TextStyle(fontSize: 13, color: Colors.black)),
               ],
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Cash', style: TextStyle(fontSize: 13, color: Colors.black)),
+                Text(transaction?.paymentMethod ?? 'Cash', style: const TextStyle(fontSize: 13, color: Colors.black)),
                 Text(_currencyFormat.format(transaction?.payAmount ?? 0), style: const TextStyle(fontSize: 13, color: Colors.black)),
               ],
             ),

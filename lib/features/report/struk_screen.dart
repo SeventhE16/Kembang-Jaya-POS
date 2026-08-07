@@ -189,7 +189,7 @@ class _StrukScreenState extends State<StrukScreen> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text('${item.quantity} x ${_currencyFormat.format(item.unitPrice)}', style: const TextStyle(fontSize: 13)),
+                                    Text('${item.quantity} x ${_currencyFormat.format(item.unitPrice - item.itemDiscount)}', style: const TextStyle(fontSize: 13)),
                                     Text(_currencyFormat.format(item.subtotal), style: const TextStyle(fontSize: 13)),
                                   ],
                                 ),

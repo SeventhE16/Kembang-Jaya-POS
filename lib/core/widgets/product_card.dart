@@ -11,6 +11,7 @@ class ProductCard extends StatelessWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final bool allowZeroStock;
+  final bool showBasePrice;
 
   const ProductCard({
     super.key,
@@ -21,6 +22,7 @@ class ProductCard extends StatelessWidget {
     this.onEdit,
     this.onDelete,
     this.allowZeroStock = false,
+    this.showBasePrice = false,
   });
 
   @override
@@ -73,7 +75,7 @@ class ProductCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Rp ${_formatNumber(product.sellPrice.toInt())} · Stok ${product.stock}${showEditDelete ? ' ${product.unit}' : ''}',
+                  'Rp ${_formatNumber((showBasePrice ? product.basePrice : product.sellPrice).toInt())} · Stok ${product.stock}${showEditDelete ? ' ${product.unit}' : ''}',
                   style: const TextStyle(
                     fontSize: 13,
                     color: AppColors.textSecondary,

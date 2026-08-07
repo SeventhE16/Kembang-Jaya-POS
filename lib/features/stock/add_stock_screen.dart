@@ -35,7 +35,7 @@ class _AddStockScreenState extends State<AddStockScreen> {
 
   void _addToCart(Product product, RestockCartProvider cartProvider) {
     setState(() {
-      cartProvider.addItem(CartItem(product: product, quantity: 1));
+      cartProvider.addItem(CartItem(product: product, quantity: 1, customPrice: product.basePrice));
     });
   }
 
@@ -164,6 +164,7 @@ class _AddStockScreenState extends State<AddStockScreen> {
                           product: product,
                           cartQuantity: cartQty,
                           allowZeroStock: true,
+                          showBasePrice: true,
                           onAdd: () => _addToCart(product, cartProvider),
                         );
                       },

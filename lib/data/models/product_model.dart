@@ -27,7 +27,7 @@ class Product {
   final String category;
   final String unit;
   double basePrice;
-  final double sellPrice;
+  double sellPrice;
   int stock;
   final bool trackStock;
   final List<WholesalePrice> wholesalePrices;

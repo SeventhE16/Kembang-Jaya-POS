@@ -95,9 +95,9 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('Kasir : ${user?.displayName ?? 'Staff'}', style: const TextStyle(fontSize: 13, color: Colors.black)),
-                  if (_cart.activeNote != null)
-                    Text(_cart.activeNote!, style: const TextStyle(fontSize: 13, color: Colors.black)),
+                  if (transaction?.customerName != null)
+                    Text('Pelanggan : ${transaction!.customerName}', style: const TextStyle(fontSize: 13, color: Colors.black)),
+                  Text('Kasir : ${transaction?.cashierName ?? user?.displayName ?? 'Staff'}', style: const TextStyle(fontSize: 13, color: Colors.black)),
                 ],
               ),
             ],
@@ -185,12 +185,12 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text('Tipe: kredit', style: TextStyle(fontSize: 13, color: Colors.black)),
-                Text('Jatuh Tempo: ', style: const TextStyle(fontSize: 13, color: Colors.black)),
+                Text('Jatuh Tempo: -', style: const TextStyle(fontSize: 13, color: Colors.black)),
               ],
             ),
             const SizedBox(height: 4),
             const Text('STATUS: BELUM LUNAS', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black)),
-            Text('SISA KREDIT: ', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black)),
+            Text('SISA KREDIT: ${_currencyFormat.format(transaction?.debtAmount ?? 0)}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black)),
             const SizedBox(height: 8),
             const _DashedDivider(),
             const SizedBox(height: 8),
@@ -199,15 +199,15 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(DateFormat('dd-MM-yyyy').format(DateTime.now()), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black)),
-                Text(user?.displayName ?? 'Staff', style: const TextStyle(fontSize: 13, color: Colors.black)),
+                Text(DateFormat('dd-MM-yyyy').format(transaction?.date ?? DateTime.now()), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black)),
+                Text(transaction?.cashierName ?? user?.displayName ?? 'Staff', style: const TextStyle(fontSize: 13, color: Colors.black)),
               ],
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Cash', style: TextStyle(fontSize: 13, color: Colors.black)),
-                const Text('Rp 0', style: TextStyle(fontSize: 13, color: Colors.black)),
+                Text(transaction?.paymentMethod ?? 'Cash', style: const TextStyle(fontSize: 13, color: Colors.black)),
+                Text(_currencyFormat.format(transaction?.payAmount ?? 0), style: const TextStyle(fontSize: 13, color: Colors.black)),
               ],
             ),
             const SizedBox(height: 8),
@@ -215,8 +215,6 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
             const SizedBox(height: 16),
           ],
           
-          if (_cart.activeNote != null)
-             Text(_cart.activeNote!, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, color: Colors.black)),
           const Text('Terimakasih telah berbelanja di Depot Kayu\nKembang Jaya', textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: Colors.black)),
         ],
       ),

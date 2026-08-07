@@ -9,6 +9,7 @@ import '../../core/widgets/app_text_field.dart';
 import '../../core/widgets/app_supplier_picker.dart';
 import 'package:provider/provider.dart';
 import '../../data/providers/restock_cart_provider.dart';
+import '../../data/providers/product_provider.dart';
 
 import 'package:intl/intl.dart';
 
@@ -122,15 +123,65 @@ class _RestockCartScreenState extends State<RestockCartScreen> {
     final item = _cart.activeCart[id];
     if (item == null) return;
 
+    if (field == 'harga') {
+      final baseController = TextEditingController(text: item.product.basePrice.toStringAsFixed(0));
+      final sellController = TextEditingController(text: item.product.sellPrice.toStringAsFixed(0));
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Ubah Harga Barang'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppTextField(
+                controller: baseController,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                hint: 'Harga Modal (Rp)',
+              ),
+              const SizedBox(height: 12),
+              AppTextField(
+                controller: sellController,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                hint: 'Harga Jual (Rp)',
+              ),
+              const SizedBox(height: 8),
+              const Text('Perubahan akan disimpan permanen', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Batal', style: TextStyle(color: AppColors.textSecondary)),
+            ),
+            AppButton(
+              label: 'Simpan',
+              onPressed: () async {
+                final newBase = double.tryParse(baseController.text);
+                final newSell = double.tryParse(sellController.text);
+                if (newBase != null && newSell != null) {
+                  setState(() {
+                    item.customPrice = newBase;
+                    item.product.basePrice = newBase;
+                    item.product.sellPrice = newSell;
+                  });
+                  await Provider.of<ProductProvider>(context, listen: false).updateProduct(item.product);
+                }
+                if (ctx.mounted) Navigator.pop(ctx);
+              },
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
     final controller = TextEditingController();
     String title = '';
     TextInputType keyboard = TextInputType.text;
 
-    if (field == 'harga') {
-      title = 'Ubah Modal/Unit';
-      controller.text = item.unitPrice.toStringAsFixed(0);
-      keyboard = TextInputType.number;
-    } else if (field == 'diskon') {
+    if (field == 'diskon') {
       title = 'Diskon Per Barang';
       controller.text = item.itemDiscount.toStringAsFixed(0);
       keyboard = TextInputType.number;
@@ -159,9 +210,7 @@ class _RestockCartScreenState extends State<RestockCartScreen> {
             label: 'Simpan',
             onPressed: () {
               setState(() {
-                if (field == 'harga') {
-                  item.customPrice = double.tryParse(controller.text);
-                } else if (field == 'diskon') {
+                if (field == 'diskon') {
                   item.itemDiscount = double.tryParse(controller.text) ?? 0;
                 } else if (field == 'catatan') {
                   item.note = controller.text.trim().isEmpty ? null : controller.text.trim();

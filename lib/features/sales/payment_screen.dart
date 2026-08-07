@@ -241,6 +241,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 Navigator.pop(ctx);
               },
             ),
+            ListTile(
+              title: const Text('Biaya Manual (Nominal)'),
+              trailing: const Icon(Icons.edit, size: 16),
+              onTap: () {
+                Navigator.pop(ctx);
+                _showCustomFeeDialog();
+              },
+            ),
             ...Provider.of<FeeProvider>(context, listen: false).fees.map((f) => ListTile(
               title: Text(f.name),
               subtitle: Text('Rp ${_currencyFormat.format(f.value).replaceAll('Rp', '').trim()}'),
@@ -254,6 +262,38 @@ class _PaymentScreenState extends State<PaymentScreen> {
             )),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showCustomFeeDialog() {
+    final TextEditingController ctrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Biaya Manual'),
+        content: TextField(
+          controller: ctrl,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Nominal Biaya (Rp)',
+            prefixText: 'Rp ',
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
+          ElevatedButton(
+            onPressed: () {
+              final val = double.tryParse(ctrl.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+              setState(() {
+                _cart.setFee(null);
+                _cart.setExtraFee(val);
+              });
+              Navigator.pop(ctx);
+            },
+            child: const Text('Simpan'),
+          ),
+        ],
       ),
     );
   }
