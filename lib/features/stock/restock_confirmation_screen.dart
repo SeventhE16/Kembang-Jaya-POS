@@ -13,6 +13,7 @@ import 'package:provider/provider.dart';
 import '../../data/providers/settings_provider.dart';
 import '../../data/models/transaction_model.dart';
 import '../../core/services/printer_service.dart';
+import '../../core/services/settings_service.dart';
 import '../../data/providers/auth_provider.dart';
 import 'package:intl/intl.dart';
 
@@ -245,10 +246,12 @@ class _RestockConfirmationScreenState extends State<RestockConfirmationScreen> {
               }
               
               final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
-              if (settingsProvider.settings == null) {
-                showStatusSnackBar(context, message: 'Pengaturan toko belum dimuat', type: SnackbarType.error);
-                return;
-              }
+              final storeSettings = settingsProvider.settings ?? StoreSettings(
+                name: 'Nama Toko (Belum Diatur)',
+                address: '-',
+                phone: '-',
+                updatedAt: DateTime.now(),
+              );
 
               if (!PrinterService().isConnected) {
                 showStatusSnackBar(context, message: 'Printer belum terhubung. Silakan atur di Pengaturan.', type: SnackbarType.error);
@@ -258,7 +261,7 @@ class _RestockConfirmationScreenState extends State<RestockConfirmationScreen> {
               final currentCtx = context;
               try {
                 showStatusSnackBar(currentCtx, message: 'Sedang mencetak struk...', type: SnackbarType.success);
-                await PrinterService().printTransaction(transaction, settingsProvider.settings!);
+                await PrinterService().printTransaction(transaction, storeSettings);
               } catch (e) {
                 if (!currentCtx.mounted) return;
                 showStatusSnackBar(currentCtx, message: 'Gagal mencetak: $e', type: SnackbarType.error);
