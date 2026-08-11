@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
@@ -56,6 +58,19 @@ Future<void> main() async {
   );
 
   await initializeDateFormatting('id', null);
+
+  // Clear up old temporary struk files that might bloat the app size
+  try {
+    final directory = await getTemporaryDirectory();
+    final files = directory.listSync();
+    for (var file in files) {
+      if (file is File && file.path.contains('struk_') && file.path.endsWith('.png')) {
+        await file.delete();
+      }
+    }
+  } catch (e) {
+    debugPrint('Cleanup error: $e');
+  }
 
   runApp(
     MultiProvider(

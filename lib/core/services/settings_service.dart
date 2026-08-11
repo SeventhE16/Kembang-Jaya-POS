@@ -81,17 +81,25 @@ class SettingsService {
       final image = img.decodeImage(bytes);
       if (image == null) throw Exception('Format gambar tidak didukung');
 
-      // Resize to max 380x380 to keep Base64 small and fit thermal printers
+      // Resize to max 380x380 for standard receipt logos
       final resized = img.copyResize(
         image,
         width: 380,
         height: image.height > image.width ? 380 : null,
       );
 
-      // Encode to PNG and Base64
       final pngBytes = img.encodePng(resized);
-      final base64String = base64Encode(pngBytes);
-      return 'data:image/png;base64,$base64String';
+      
+      // Upload to Firebase Storage
+      final ref = _storage.ref().child('store_logos/${StoreContext().storeId}_${DateTime.now().millisecondsSinceEpoch}.png');
+      
+      final uploadTask = await ref.putData(
+        pngBytes,
+        SettableMetadata(contentType: 'image/png'),
+      );
+      
+      final downloadUrl = await uploadTask.ref.getDownloadURL();
+      return downloadUrl;
     } catch (e) {
       rethrow;
     }

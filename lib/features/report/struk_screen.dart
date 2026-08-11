@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -31,16 +32,17 @@ class _StrukScreenState extends State<StrukScreen> {
       final image = await _screenshotController.capture();
       if (image == null) return;
 
-      final directory = await getTemporaryDirectory();
-      final imagePath = await File('${directory.path}/struk_${DateTime.now().millisecondsSinceEpoch}.png').create();
-      await imagePath.writeAsBytes(image);
+      final result = await ImageGallerySaver.saveImage(
+        image,
+        name: 'struk_${DateTime.now().millisecondsSinceEpoch}',
+      );
 
       if (mounted) {
-        showStatusSnackBar(
-          context,
-          message: 'Struk berhasil diunduh ke ${imagePath.path}',
-          type: SnackbarType.success,
-        );
+        if (result['isSuccess'] == true) {
+          showStatusSnackBar(context, message: 'Struk berhasil disimpan ke Galeri', type: SnackbarType.success);
+        } else {
+          showStatusSnackBar(context, message: 'Gagal menyimpan struk: ${result['errorMessage']}', type: SnackbarType.error);
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -59,7 +61,7 @@ class _StrukScreenState extends State<StrukScreen> {
       if (image == null) return;
 
       final directory = await getTemporaryDirectory();
-      final imagePath = await File('${directory.path}/struk_share_${DateTime.now().millisecondsSinceEpoch}.png').create();
+      final imagePath = await File('${directory.path}/struk_share.png').create();
       await imagePath.writeAsBytes(image);
 
       await Share.shareXFiles(

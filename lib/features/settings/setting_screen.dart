@@ -52,6 +52,9 @@ class _SettingScreenState extends State<SettingScreen> {
         _storeAddressController.text = settings.address;
         _storePhoneController.text = settings.phone;
         _logoSizeController.text = settings.logoSize.toString();
+        if (settings.logoUrl != null) {
+          _logoUrlController.text = settings.logoUrl!;
+        }
       }
     });
     _loadPrinters();

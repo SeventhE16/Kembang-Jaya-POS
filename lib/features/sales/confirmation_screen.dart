@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
@@ -298,13 +299,17 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
   Future<void> _downloadStruk(Transaction? transaction) async {
     try {
       final image = await _screenshotController.captureFromWidget(_buildStrukContent(transaction));
-      final directory = await getTemporaryDirectory();
-      final fileName = 'struk_${DateTime.now().millisecondsSinceEpoch}.png';
-      final imagePath = File('${directory.path}/$fileName');
-      await imagePath.writeAsBytes(image);
+      final result = await ImageGallerySaver.saveImage(
+        image, 
+        name: 'struk_${DateTime.now().millisecondsSinceEpoch}',
+      );
       
       if (mounted) {
-        showStatusSnackBar(context, message: 'Struk berhasil disimpan', type: SnackbarType.success);
+        if (result['isSuccess'] == true) {
+          showStatusSnackBar(context, message: 'Struk berhasil disimpan ke Galeri', type: SnackbarType.success);
+        } else {
+          showStatusSnackBar(context, message: 'Gagal menyimpan struk: ${result['errorMessage']}', type: SnackbarType.error);
+        }
       }
     } catch (e) {
       if (mounted) {
