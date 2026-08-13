@@ -8,12 +8,12 @@ import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
-import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_logo.dart';
 import '../../core/widgets/status_dialog.dart';
 import '../../data/models/transaction_model.dart';
 import '../../data/providers/settings_provider.dart';
 import '../../data/providers/auth_provider.dart';
+import '../../core/services/printer_service.dart';
 
 class StrukScreen extends StatefulWidget {
   const StrukScreen({super.key});
@@ -25,7 +25,6 @@ class StrukScreen extends StatefulWidget {
 class _StrukScreenState extends State<StrukScreen> {
   final ScreenshotController _screenshotController = ScreenshotController();
   final NumberFormat _currencyFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
-  final GlobalKey _globalKey = GlobalKey();
 
   Future<void> _downloadReceipt() async {
     try {
@@ -80,7 +79,21 @@ class _StrukScreenState extends State<StrukScreen> {
   }
 
   Future<void> _printReceipt(Transaction transaction) async {
-    // Placeholder for printing logic
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final storeSettings = settingsProvider.settings; // Dynamic type handled by PrinterService
+
+    if (!PrinterService().isConnected) {
+      showStatusSnackBar(context, message: 'Printer belum terhubung. Silakan atur di Pengaturan.', type: SnackbarType.error);
+      return;
+    }
+
+    try {
+      showStatusSnackBar(context, message: 'Sedang mencetak struk...', type: SnackbarType.success);
+      await PrinterService().printTransaction(transaction, storeSettings);
+    } catch (e) {
+      if (!mounted) return;
+      showStatusSnackBar(context, message: 'Gagal mencetak: $e', type: SnackbarType.error);
+    }
   }
 
   @override
@@ -112,8 +125,8 @@ class _StrukScreenState extends State<StrukScreen> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppDimensions.spacingLG),
         child: Center(
-          child: RepaintBoundary(
-            key: _globalKey,
+          child: Screenshot(
+            controller: _screenshotController,
             child: Container(
               width: 320, // Thermal printer width approximation
               padding: const EdgeInsets.all(AppDimensions.spacingMD),

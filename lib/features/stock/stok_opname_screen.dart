@@ -21,6 +21,8 @@ class StokOpnameScreen extends StatefulWidget {
 
 class _StokOpnameScreenState extends State<StokOpnameScreen> {
   final Map<String, int> _physicalStocks = {};
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
   
   @override
   void initState() {
@@ -34,6 +36,12 @@ class _StokOpnameScreenState extends State<StokOpnameScreen> {
       }
       if (mounted) setState(() {});
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   void _saveOpname(List<Product> products, String cashierName) {
@@ -83,6 +91,7 @@ class _StokOpnameScreenState extends State<StokOpnameScreen> {
     final products = Provider.of<ProductProvider>(context).products;
     final cashierName = Provider.of<AuthProvider>(context).user?.displayName ?? 'Kasir';
     final trackableProducts = products.where((p) => p.trackStock).toList();
+    final filteredProducts = trackableProducts.where((p) => p.name.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
 
     return Scaffold(
       drawer: const AppDrawer(currentRoute: AppRoutes.stokOpname),
@@ -113,11 +122,33 @@ class _StokOpnameScreenState extends State<StokOpnameScreen> {
                     ],
                   ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (val) => setState(() => _searchQuery = val),
+                    decoration: InputDecoration(
+                      hintText: 'Cari nama barang...',
+                      prefixIcon: const Icon(Icons.search, color: AppColors.primary),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _searchQuery = '');
+                              },
+                            )
+                          : null,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.radius)),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                    ),
+                  ),
+                ),
                 Expanded(
                   child: ListView.builder(
-                    itemCount: trackableProducts.length,
+                    itemCount: filteredProducts.length,
                     itemBuilder: (context, index) {
-                      final p = trackableProducts[index];
+                      final p = filteredProducts[index];
                       final sysStock = p.stock;
                       final physStock = _physicalStocks[p.id] ?? 0;
                       final diff = physStock - sysStock;

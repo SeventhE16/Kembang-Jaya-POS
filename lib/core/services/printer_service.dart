@@ -9,6 +9,20 @@ class PrinterService {
   factory PrinterService() => _instance;
   PrinterService._internal();
 
+  String _formatRupiah(num amount) {
+    final intAmount = amount.toInt();
+    final str = intAmount.abs().toString();
+    final buffer = StringBuffer();
+    int count = 0;
+    for (int i = str.length - 1; i >= 0; i--) {
+      if (count > 0 && count % 3 == 0) buffer.write('.');
+      buffer.write(str[i]);
+      count++;
+    }
+    final result = buffer.toString().split('').reversed.join();
+    return intAmount < 0 ? '-$result' : result;
+  }
+
   final BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
 
   BluetoothDevice? _selectedDevice;
@@ -141,15 +155,16 @@ class PrinterService {
 
     // Items
     for (var item in t.items) {
-      final name = item.product.name;
+      final name = item.product.name.replaceAll(RegExp(r'\s*Grade.*', caseSensitive: false), '');
       final qty = item.quantity;
       final price = item.unitPrice;
       final total = item.subtotal;
       
-      bluetooth.printCustom(name, 1, 0);
+      final displayName = name.length > 32 ? '${name.substring(0, 32)}...' : name;
+      bluetooth.printCustom(displayName, 2, 0);
       bluetooth.printLeftRight(
-        "$qty ${item.product.unit} x ${price.toInt()}", 
-        "${total.toInt()}", 
+        "$qty ${item.product.unit} x ${_formatRupiah(price)}", 
+        "${_formatRupiah(total)}", 
         1,
       );
     }
@@ -157,32 +172,32 @@ class PrinterService {
     bluetooth.printCustom("--------------------------------", 1, 1);
     
     // Totals
-    bluetooth.printLeftRight("Subtotal", "${t.subtotal.toInt()}", 1);
+    bluetooth.printLeftRight("Subtotal", "${_formatRupiah(t.subtotal)}", 1);
     if (t.discount != null) {
-      bluetooth.printLeftRight("Diskon (${t.discount.name})", "-${t.discount.value.toInt()}", 1);
+      bluetooth.printLeftRight("Diskon (${t.discount.name})", "-${_formatRupiah(t.discount.value)}", 1);
     }
     if (t.extraDiscount > 0) {
-      bluetooth.printLeftRight("Diskon Tambahan", "-${t.extraDiscount.toInt()}", 1);
+      bluetooth.printLeftRight("Diskon Tambahan", "-${_formatRupiah(t.extraDiscount)}", 1);
     }
     if (t.fee != null) {
-      bluetooth.printLeftRight("Biaya (${t.fee.name})", "+${t.fee.value.toInt()}", 1);
+      bluetooth.printLeftRight("Biaya (${t.fee.name})", "+${_formatRupiah(t.fee.value)}", 1);
     }
     if (t.extraFee > 0) {
-      bluetooth.printLeftRight("Biaya Tambahan", "+${t.extraFee.toInt()}", 1);
+      bluetooth.printLeftRight("Biaya Tambahan", "+${_formatRupiah(t.extraFee)}", 1);
     }
     
     bluetooth.printCustom("--------------------------------", 1, 1);
-    bluetooth.printLeftRight("TOTAL", "${t.total.toInt()}", 2);
+    bluetooth.printLeftRight("TOTAL", "${_formatRupiah(t.total)}", 2);
     
     bluetooth.printCustom("--------------------------------", 1, 1);
-    bluetooth.printLeftRight("Bayar (${t.paymentMethod})", "${t.payAmount.toInt()}", 1);
+    bluetooth.printLeftRight("Bayar (${t.paymentMethod})", "${_formatRupiah(t.payAmount)}", 1);
     
     if (t.paymentMethod == 'Kasbon' || t.debtAmount > 0) {
-      bluetooth.printLeftRight("Belum Lunas", "${t.debtAmount.toInt()}", 1);
+      bluetooth.printLeftRight("Belum Lunas", "${_formatRupiah(t.debtAmount)}", 1);
     } else {
       final change = t.payAmount - t.total;
       if (change > 0) {
-        bluetooth.printLeftRight("Kembali", "${change.toInt()}", 1);
+        bluetooth.printLeftRight("Kembali", "${_formatRupiah(change)}", 1);
       }
     }
     

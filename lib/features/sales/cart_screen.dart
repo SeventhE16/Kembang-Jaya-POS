@@ -29,6 +29,8 @@ class _CartScreenState extends State<CartScreen> {
     decimalDigits: 0,
   );
 
+  bool _isWholesaleRow(String key) => key.endsWith('_grosir');
+
   double get _subtotal {
     return _cart.activeCart.values.fold(0.0, (sum, item) => sum + item.subtotal);
   }
@@ -152,26 +154,22 @@ class _CartScreenState extends State<CartScreen> {
       return;
     }
 
-    setState(() {
-      item.quantity += delta;
-      if (item.quantity <= 0) {
-        final removedItem = _cart.activeCart.remove(id);
-        if (removedItem != null) {
-          final oldQty = item.quantity - delta; // restore to old qty
-          showStatusSnackBar(
-            context,
-            message: '${removedItem.product.name} dihapus',
-            type: SnackbarType.success,
-            onUndo: () {
-              setState(() {
-                removedItem.quantity = oldQty > 0 ? oldQty : 1;
-                _cart.activeCart[id] = removedItem;
-              });
-            },
-          );
-        }
-      }
-    });
+    final oldQty = item.quantity;
+    _cart.updateQuantity(id, delta);
+    
+    if (!_cart.activeCart.containsKey(id) && oldQty + delta <= 0) {
+      showStatusSnackBar(
+        context,
+        message: '${item.product.name} dihapus',
+        type: SnackbarType.success,
+        onUndo: () {
+          _cart.setQuantity(id, oldQty);
+          setState(() {});
+        },
+      );
+    }
+    
+    setState(() {});
 
     if (_cart.activeCart.isEmpty) {
       Navigator.pop(context);
@@ -202,31 +200,26 @@ class _CartScreenState extends State<CartScreen> {
             label: 'Simpan',
             onPressed: () {
               final newQty = int.tryParse(controller.text) ?? 0;
+              final oldQty = item.quantity;
               if (newQty <= 0) {
-                final removedItem = _cart.activeCart.remove(id);
-                if (removedItem != null) {
-                  final oldQty = item.quantity;
-                  showStatusSnackBar(
-                    context,
-                    message: '${removedItem.product.name} dihapus',
-                    type: SnackbarType.success,
-                    onUndo: () {
-                      setState(() {
-                        removedItem.quantity = oldQty;
-                        _cart.activeCart[id] = removedItem;
-                      });
-                    },
-                  );
-                }
+                _cart.setQuantity(id, 0); // remove item
+                showStatusSnackBar(
+                  context,
+                  message: '${item.product.name} dihapus',
+                  type: SnackbarType.success,
+                  onUndo: () {
+                    _cart.setQuantity(id, oldQty);
+                    setState(() {});
+                  },
+                );
                 setState(() {});
               } else {
                 if (item.product.trackStock && newQty > item.product.stock) {
                   showStatusSnackBar(context, message: 'Stok tidak cukup', type: SnackbarType.error);
                   return;
                 }
-                setState(() {
-                  item.quantity = newQty;
-                });
+                _cart.setQuantity(id, newQty);
+                setState(() {});
               }
               Navigator.pop(ctx);
               if (_cart.activeCart.isEmpty) {
@@ -336,9 +329,28 @@ class _CartScreenState extends State<CartScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      item.product.name,
-                                      style: Theme.of(context).textTheme.titleSmall,
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            item.product.name,
+                                            style: Theme.of(context).textTheme.titleSmall,
+                                          ),
+                                        ),
+                                        if (_isWholesaleRow(key))
+                                          Container(
+                                            margin: const EdgeInsets.only(left: 8),
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: AppColors.success.withValues(alpha: 0.15),
+                                              borderRadius: BorderRadius.circular(4),
+                                            ),
+                                            child: const Text(
+                                              'Grosir',
+                                              style: TextStyle(fontSize: 10, color: AppColors.success, fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                      ],
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
@@ -464,9 +476,26 @@ class _CartScreenState extends State<CartScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.info_outline, color: AppColors.primary),
-                        onPressed: _showProfitInfo,
+                      InkWell(
+                        onTap: _showProfitInfo,
+                        borderRadius: BorderRadius.circular(AppDimensions.radius),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: AppColors.primary),
+                            borderRadius: BorderRadius.circular(AppDimensions.radius),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.info_outline, color: AppColors.primary, size: 20),
+                              const SizedBox(width: 8),
+                              const Text(
+                                'Keuntungan',
+                                style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                       InkWell(
                         onTap: () {
