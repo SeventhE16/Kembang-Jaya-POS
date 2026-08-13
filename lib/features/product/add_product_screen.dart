@@ -88,6 +88,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
         .where((e) => e.minQty > 0 && e.price > 0)
         .toList();
 
+    final int initialStock = int.tryParse(_stockController.text) ?? 0;
+    final double initialBasePrice = double.tryParse(_basePriceController.text) ?? 0;
+
     final newProduct = Product(
       id: 'P${DateTime.now().millisecondsSinceEpoch}',
       name: _nameController.text.trim(),
@@ -95,9 +98,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
           ? 'Material'
           : _categoryController.text.trim(),
       unit: _unitController.text.trim(),
-      basePrice: double.tryParse(_basePriceController.text) ?? 0,
+      basePrice: initialBasePrice,
       sellPrice: double.tryParse(_sellPriceController.text) ?? 0,
-      stock: int.tryParse(_stockController.text) ?? 0,
+      stock: initialStock,
+      stockBatches: initialStock > 0 
+          ? [StockBatch(id: DateTime.now().millisecondsSinceEpoch.toString(), quantity: initialStock, basePrice: initialBasePrice, dateAdded: DateTime.now())] 
+          : [],
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
       trackStock: _trackStock,

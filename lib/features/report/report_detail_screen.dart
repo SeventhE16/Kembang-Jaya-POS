@@ -92,7 +92,7 @@ class ReportDetailScreen extends StatelessWidget {
                 
                 double costBasis = 0;
                 for (var item in tx.items) {
-                  costBasis += item.product.basePrice * item.quantity;
+                  costBasis += item.cogs ?? (item.product.basePrice * item.quantity);
                 }
                 final keuntungan = tx.subtotal - costBasis;
 

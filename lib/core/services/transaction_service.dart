@@ -40,17 +40,78 @@ class TransactionService {
         tx.set(counterRef, {'count': newCount});
         
         // Batch stock reduction or addition
-        for (var item in transaction.items) {
+        final List<CartItem> updatedItems = [];
+        for (int i = 0; i < transaction.items.length; i++) {
+          CartItem item = transaction.items[i];
+          CartItem finalItem = item;
           if (item.product.category != 'Jasa') {
             final productRef = _firestore.collection('products').doc(item.product.id);
-            final int stockDelta = transaction.type == 'purchase' ? item.quantity : -item.quantity;
-            tx.update(productRef, {'stock': FieldValue.increment(stockDelta)});
+            final productDoc = await tx.get(productRef);
+            
+            if (productDoc.exists) {
+              final product = Product.fromJson(productDoc.data()!, productDoc.id);
+              List<StockBatch> currentBatches = List.from(product.stockBatches);
+              
+              if (transaction.type == 'purchase') {
+                // Add new batch
+                currentBatches.add(StockBatch(
+                  id: '${DateTime.now().microsecondsSinceEpoch}_$i',
+                  quantity: item.quantity,
+                  basePrice: item.product.basePrice,
+                  dateAdded: DateTime.now(),
+                ));
+              } else {
+                // Sale - FIFO logic
+                int remainingToDeduct = item.quantity;
+                double totalCogs = 0;
+                
+                // Sort by oldest dateAdded first just in case
+                currentBatches.sort((a, b) => a.dateAdded.compareTo(b.dateAdded));
+                
+                for (int j = 0; j < currentBatches.length; j++) {
+                  if (remainingToDeduct <= 0) break;
+                  
+                  if (currentBatches[j].quantity > 0) {
+                    int qtyToTake = remainingToDeduct <= currentBatches[j].quantity ? remainingToDeduct : currentBatches[j].quantity;
+                    totalCogs += qtyToTake * currentBatches[j].basePrice;
+                    currentBatches[j].quantity -= qtyToTake;
+                    remainingToDeduct -= qtyToTake;
+                  }
+                }
+                
+                // Fallback for negative stock (sold more than tracked in batches)
+                if (remainingToDeduct > 0) {
+                  totalCogs += remainingToDeduct * product.basePrice;
+                }
+                
+                // Clean up empty batches
+                currentBatches.removeWhere((b) => b.quantity <= 0);
+                
+                // Update item's cogs
+                finalItem = CartItem(
+                  product: item.product,
+                  quantity: item.quantity,
+                  customPrice: item.customPrice,
+                  itemDiscount: item.itemDiscount,
+                  note: item.note,
+                  cogs: totalCogs,
+                );
+              }
+              
+              final int stockDelta = transaction.type == 'purchase' ? item.quantity : -item.quantity;
+              tx.update(productRef, {
+                'stock': FieldValue.increment(stockDelta),
+                'stockBatches': currentBatches.map((e) => e.toJson()).toList(),
+              });
+            }
           }
+          updatedItems.add(finalItem);
         }
         
         final finalTx = transaction.copyWith(
           id: newTxRef.id,
           invoiceNumber: invoiceNum,
+          items: updatedItems,
         );
         
         final data = finalTx.toJson();

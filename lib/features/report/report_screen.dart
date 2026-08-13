@@ -91,7 +91,7 @@ class _ReportScreenState extends State<ReportScreen> {
       // Keuntungan = total - subtotal cost (approximation: total - sum of base prices)
       double costBasis = 0;
       for (var item in t.items) {
-        costBasis += item.product.basePrice * item.quantity;
+        costBasis += item.cogs ?? (item.product.basePrice * item.quantity);
       }
       grouped[key]!['keuntungan'] = (grouped[key]!['keuntungan'] as double) + (t.subtotal - costBasis);
       grouped[key]!['count'] = (grouped[key]!['count'] as int) + 1;
@@ -409,7 +409,7 @@ class _ReportScreenState extends State<ReportScreen> {
     final totalKeuntungan = transactions.fold<double>(0, (sum, t) {
       double costBasis = 0;
       for (var item in t.items) {
-        costBasis += item.product.basePrice * item.quantity;
+        costBasis += item.cogs ?? (item.product.basePrice * item.quantity);
       }
       return sum + (t.subtotal - costBasis);
     });

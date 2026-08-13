@@ -9,6 +9,7 @@ class CartItem {
   double? customPrice;
   double itemDiscount;
   String? note;
+  double? cogs; // Exact Cost of Goods Sold from FIFO calculation
 
   CartItem({
     required this.product,
@@ -16,6 +17,7 @@ class CartItem {
     this.customPrice,
     this.itemDiscount = 0,
     this.note,
+    this.cogs,
   });
 
   factory CartItem.fromJson(Map<String, dynamic> json) {
@@ -25,6 +27,7 @@ class CartItem {
       customPrice: json['customPrice'] != null ? (json['customPrice'] as num).toDouble() : null,
       itemDiscount: (json['itemDiscount'] ?? 0).toDouble(),
       note: json['note'],
+      cogs: json['cogs'] != null ? (json['cogs'] as num).toDouble() : null,
     );
   }
 
@@ -35,6 +38,7 @@ class CartItem {
       'customPrice': customPrice,
       'itemDiscount': itemDiscount,
       'note': note,
+      'cogs': cogs,
     };
   }
 

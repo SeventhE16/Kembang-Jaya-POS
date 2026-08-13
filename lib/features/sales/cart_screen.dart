@@ -54,7 +54,34 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   double get _totalModal {
-    return _cart.activeCart.values.fold(0.0, (sum, item) => sum + (item.product.basePrice * item.quantity));
+    double total = 0;
+    for (var item in _cart.activeCart.values) {
+      if (item.product.category == 'Jasa') {
+        continue;
+      }
+      
+      int remaining = item.quantity;
+      double itemModal = 0;
+      
+      List<StockBatch> sortedBatches = List.from(item.product.stockBatches)
+        ..sort((a, b) => a.dateAdded.compareTo(b.dateAdded));
+        
+      for (var batch in sortedBatches) {
+        if (remaining <= 0) break;
+        if (batch.quantity > 0) {
+          int take = remaining <= batch.quantity ? remaining : batch.quantity;
+          itemModal += take * batch.basePrice;
+          remaining -= take;
+        }
+      }
+      
+      if (remaining > 0) {
+        itemModal += remaining * item.product.basePrice;
+      }
+      
+      total += itemModal;
+    }
+    return total;
   }
 
   double get _totalDiskon {

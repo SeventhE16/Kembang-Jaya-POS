@@ -21,6 +21,38 @@ class WholesalePrice {
   }
 }
 
+class StockBatch {
+  final String id;
+  int quantity;
+  double basePrice;
+  final DateTime dateAdded;
+
+  StockBatch({
+    required this.id,
+    required this.quantity,
+    required this.basePrice,
+    required this.dateAdded,
+  });
+
+  factory StockBatch.fromJson(Map<String, dynamic> json) {
+    return StockBatch(
+      id: json['id'] ?? '',
+      quantity: json['quantity'] ?? 0,
+      basePrice: (json['basePrice'] ?? 0).toDouble(),
+      dateAdded: (json['dateAdded'] as Timestamp?)?.toDate() ?? DateTime.now(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'quantity': quantity,
+      'basePrice': basePrice,
+      'dateAdded': Timestamp.fromDate(dateAdded),
+    };
+  }
+}
+
 class Product {
   final String id;
   final String name;
@@ -31,6 +63,7 @@ class Product {
   int stock;
   final bool trackStock;
   final List<WholesalePrice> wholesalePrices;
+  List<StockBatch> stockBatches;
   final DateTime createdAt;
   final DateTime updatedAt;
   final String? createdBy;
@@ -46,6 +79,7 @@ class Product {
     required this.stock,
     this.trackStock = true,
     this.wholesalePrices = const [],
+    this.stockBatches = const [],
     required this.createdAt,
     required this.updatedAt,
     this.createdBy,
@@ -65,7 +99,11 @@ class Product {
       wholesalePrices: (json['wholesalePrices'] as List<dynamic>?)
               ?.map((e) => WholesalePrice.fromJson(e as Map<String, dynamic>))
               .toList() ??
-          const [],
+          [],
+      stockBatches: (json['stockBatches'] as List<dynamic>?)
+              ?.map((e) => StockBatch.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
       createdAt: (json['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (json['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       createdBy: json['createdBy'] as String?,
@@ -83,6 +121,7 @@ class Product {
       'stock': stock,
       'trackStock': trackStock,
       'wholesalePrices': wholesalePrices.map((e) => e.toJson()).toList(),
+      'stockBatches': stockBatches.map((e) => e.toJson()).toList(),
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
       'createdBy': createdBy,
@@ -100,6 +139,7 @@ class Product {
     int? stock,
     bool? trackStock,
     List<WholesalePrice>? wholesalePrices,
+    List<StockBatch>? stockBatches,
     DateTime? createdAt,
     DateTime? updatedAt,
     String? createdBy,
@@ -115,6 +155,7 @@ class Product {
       stock: stock ?? this.stock,
       trackStock: trackStock ?? this.trackStock,
       wholesalePrices: wholesalePrices ?? this.wholesalePrices,
+      stockBatches: stockBatches ?? this.stockBatches,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       createdBy: createdBy ?? this.createdBy,

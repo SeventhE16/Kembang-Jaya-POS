@@ -301,19 +301,29 @@ class _ProductScreenState extends State<ProductScreen> {
                       return;
                     }
 
+                    final newStock = int.tryParse(stockController.text) ?? 0;
+                    final newBasePrice = double.tryParse(basePriceController.text) ?? 0;
+                    
+                    bool resetBatches = (newStock != product.stock) || (newBasePrice != product.basePrice);
+                    List<StockBatch> newBatches = product.stockBatches;
+                    if (resetBatches) {
+                      newBatches = newStock > 0 
+                          ? [StockBatch(id: DateTime.now().millisecondsSinceEpoch.toString(), quantity: newStock, basePrice: newBasePrice, dateAdded: DateTime.now())]
+                          : [];
+                    }
+
                     final updatedProduct = product.copyWith(
                       name: nameController.text.trim(),
                       category: categoryController.text.trim().isEmpty
                           ? 'Material'
                           : categoryController.text.trim(),
                       unit: unitController.text.trim(),
-                      basePrice:
-                          double.tryParse(basePriceController.text) ?? 0,
-                      sellPrice:
-                          double.tryParse(sellPriceController.text) ?? 0,
-                      stock: int.tryParse(stockController.text) ?? 0,
+                      basePrice: newBasePrice,
+                      sellPrice: double.tryParse(sellPriceController.text) ?? 0,
+                      stock: newStock,
                       trackStock: trackStock,
                       wholesalePrices: wholesalePrices,
+                      stockBatches: newBatches,
                     );
                     
                     await Provider.of<ProductProvider>(context, listen: false).updateProduct(updatedProduct);
