@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import '../../data/providers/cart_provider.dart';
 import '../../data/providers/transaction_provider.dart';
 import '../../data/models/transaction_model.dart';
+import '../../data/models/product_model.dart';
 
 import 'package:intl/intl.dart';
 
