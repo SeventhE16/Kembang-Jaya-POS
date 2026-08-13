@@ -236,15 +236,17 @@ class _CartScreenState extends State<CartScreen> {
     final item = _cart.activeCart[id];
     if (item == null) return;
 
+    // Dialog khusus Ubah Harga — modern bottom sheet dengan live profit
+    if (field == 'harga') {
+      _showEditHargaSheet(id, item);
+      return;
+    }
+
     final controller = TextEditingController();
     String title = '';
     TextInputType keyboard = TextInputType.text;
 
-    if (field == 'harga') {
-      title = 'Ubah Harga (Markup)';
-      controller.text = item.unitPrice.toStringAsFixed(0);
-      keyboard = TextInputType.number;
-    } else if (field == 'diskon') {
+    if (field == 'diskon') {
       title = 'Diskon Per Barang';
       controller.text = item.itemDiscount.toStringAsFixed(0);
       keyboard = TextInputType.number;
@@ -273,9 +275,7 @@ class _CartScreenState extends State<CartScreen> {
             label: 'Simpan',
             onPressed: () {
               setState(() {
-                if (field == 'harga') {
-                  item.customPrice = double.tryParse(controller.text);
-                } else if (field == 'diskon') {
+                if (field == 'diskon') {
                   item.itemDiscount = double.tryParse(controller.text) ?? 0;
                 } else if (field == 'catatan') {
                   item.note = controller.text.trim().isEmpty ? null : controller.text.trim();
@@ -285,6 +285,180 @@ class _CartScreenState extends State<CartScreen> {
             },
           ),
         ],
+      ),
+    );
+  }
+
+  void _showEditHargaSheet(String id, CartItem item) {
+    final controller = TextEditingController(text: item.unitPrice.toStringAsFixed(0));
+    final basePrice = item.product.basePrice;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) {
+          final currentPrice = double.tryParse(controller.text) ?? item.unitPrice;
+          final profit = currentPrice - basePrice;
+          final profitPositive = profit >= 0;
+
+          return Padding(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Handle bar
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Title + product name
+                  Text(
+                    'Ubah Harga',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    item.product.name.replaceAll(RegExp(r'\s*Grade.*', caseSensitive: false), ''),
+                    style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 20),
+                  // Input harga
+                  TextField(
+                    controller: controller,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    autofocus: true,
+                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    decoration: InputDecoration(
+                      prefixText: 'Rp ',
+                      prefixStyle: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                      filled: true,
+                      fillColor: AppColors.inputFill,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(AppDimensions.radius),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(AppDimensions.radius),
+                        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    ),
+                    onChanged: (_) => setSheetState(() {}),
+                  ),
+                  const SizedBox(height: 12),
+                  // Live profit card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: profitPositive
+                          ? AppColors.success.withValues(alpha: 0.08)
+                          : AppColors.error.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(AppDimensions.radius),
+                      border: Border.all(
+                        color: profitPositive
+                            ? AppColors.success.withValues(alpha: 0.3)
+                            : AppColors.error.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              profitPositive ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+                              size: 18,
+                              color: profitPositive ? AppColors.success : AppColors.error,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Keuntungan per barang',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: profitPositive ? AppColors.success : AppColors.error,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          '${profitPositive ? '+' : ''}${_currencyFormat.format(profit)}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: profitPositive ? AppColors.success : AppColors.error,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  // Hint harga modal
+                  Text(
+                    'Harga modal: ${_currencyFormat.format(basePrice)}',
+                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  ),
+                  const SizedBox(height: 20),
+                  // Tombol aksi
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            side: const BorderSide(color: AppColors.textSecondary),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radius)),
+                          ),
+                          child: const Text('Batal', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              item.customPrice = double.tryParse(controller.text);
+                            });
+                            Navigator.pop(ctx);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radius)),
+                            elevation: 0,
+                          ),
+                          child: const Text('Simpan', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -401,6 +575,19 @@ class _CartScreenState extends State<CartScreen> {
                                 style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontStyle: FontStyle.italic),
                               ),
                           ],
+                          const SizedBox(height: 6),
+                          // Total per item
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              'Total: ${_currencyFormat.format(item.subtotal)}',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
                           const SizedBox(height: AppDimensions.spacingMD),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
