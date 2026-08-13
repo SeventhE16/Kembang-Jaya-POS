@@ -13,7 +13,6 @@ import '../../core/widgets/status_dialog.dart';
 import '../../data/models/transaction_model.dart';
 import '../../data/models/product_model.dart';
 import '../../data/providers/settings_provider.dart';
-import '../../data/providers/auth_provider.dart';
 import '../../core/services/printer_service.dart';
 
 class StrukScreen extends StatefulWidget {
@@ -25,52 +24,332 @@ class StrukScreen extends StatefulWidget {
 
 class _StrukScreenState extends State<StrukScreen> {
   final ScreenshotController _screenshotController = ScreenshotController();
-  final NumberFormat _currencyFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+  final NumberFormat _currencyFormat = NumberFormat.currency(
+    locale: 'id_ID',
+    symbol: 'Rp ',
+    decimalDigits: 0,
+  );
 
-  Future<void> _downloadReceipt() async {
+  // Konten struk diekstrak ke method terpisah agar bisa dipakai
+  // untuk tampilan layar DAN captureFromWidget (pola sama seperti confirmation_screen)
+  Widget _buildStrukContent(Transaction transaction) {
+    final settings = Provider.of<SettingsProvider>(context, listen: false).settings;
+    final storeName = (settings as dynamic)?.name ?? 'KEMBANG JAYA';
+    final storeAddress = (settings as dynamic)?.address ?? '';
+    final storePhone = (settings as dynamic)?.phone ?? '';
+    final logoUrl = (settings as dynamic)?.logoUrl;
+
+    return Container(
+      width: 320,
+      padding: const EdgeInsets.all(AppDimensions.spacingMD),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 5)),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Logo
+          if (logoUrl != null && logoUrl.isNotEmpty)
+            AppLogo(logoUrl: logoUrl, height: 60, width: 60)
+          else
+            const Icon(Icons.store, size: 60, color: AppColors.textPrimary),
+
+          const SizedBox(height: AppDimensions.spacingSM),
+
+          // Nama toko
+          Text(
+            storeName.toUpperCase(),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+
+          // Alamat & telepon
+          if (storeAddress.isNotEmpty || storePhone.isNotEmpty)
+            Text(
+              [
+                if (storeAddress.isNotEmpty) storeAddress,
+                if (storePhone.isNotEmpty) 'Telp: $storePhone',
+              ].join('\n'),
+              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              textAlign: TextAlign.center,
+            ),
+
+          const SizedBox(height: AppDimensions.spacingMD),
+          const _DashedDivider(),
+          const SizedBox(height: AppDimensions.spacingMD),
+
+          // Tanggal & kasir
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                DateFormat('dd MMM yyyy HH:mm').format(transaction.date),
+                style: const TextStyle(fontSize: 12),
+              ),
+              Text(
+                'Kasir: ${transaction.cashierName}',
+                style: const TextStyle(fontSize: 12),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: AppDimensions.spacingMD),
+          const _DashedDivider(),
+          const SizedBox(height: AppDimensions.spacingMD),
+
+          // Item barang
+          ...transaction.items.expand((item) {
+            final name = item.product.name
+                .replaceAll(RegExp(r'\s*Grade.*', caseSensitive: false), '');
+            final widgets = <Widget>[];
+
+            // Tampilan grosir+ecer jika berlaku
+            if (item.customPrice == null &&
+                item.product.wholesalePrices.isNotEmpty) {
+              final sortedTiers =
+                  List<WholesalePrice>.from(item.product.wholesalePrices)
+                    ..sort((a, b) => b.minQty.compareTo(a.minQty));
+              final tier = sortedTiers.first;
+
+              if (item.quantity >= tier.minQty) {
+                final wholesaleQty =
+                    (item.quantity ~/ tier.minQty) * tier.minQty;
+                final remainderQty = item.quantity % tier.minQty;
+
+                widgets.add(Padding(
+                  padding: const EdgeInsets.only(bottom: 2),
+                  child: Text(name,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 13)),
+                ));
+                widgets.add(Padding(
+                  padding: const EdgeInsets.only(bottom: 2),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '$wholesaleQty x ${_currencyFormat.format(tier.price - item.itemDiscount)} (grosir)',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      Text(
+                        _currencyFormat.format(
+                            wholesaleQty * (tier.price - item.itemDiscount)),
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ));
+                if (remainderQty > 0) {
+                  widgets.add(Padding(
+                    padding:
+                        const EdgeInsets.only(bottom: AppDimensions.spacingSM),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '$remainderQty x ${_currencyFormat.format(item.product.sellPrice - item.itemDiscount)} (ecer)',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        Text(
+                          _currencyFormat.format(remainderQty *
+                              (item.product.sellPrice - item.itemDiscount)),
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ));
+                } else {
+                  widgets.add(const SizedBox(height: AppDimensions.spacingSM));
+                }
+                return widgets;
+              }
+            }
+
+            // Default: item biasa (1 baris)
+            widgets.add(Padding(
+              padding:
+                  const EdgeInsets.only(bottom: AppDimensions.spacingSM),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(name,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 13)),
+                  const SizedBox(height: 2),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${item.quantity} x ${_currencyFormat.format(item.unitPrice - item.itemDiscount)}',
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                      Text(
+                        _currencyFormat.format(item.subtotal),
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ));
+            return widgets;
+          }),
+
+          const SizedBox(height: AppDimensions.spacingSM),
+          const _DashedDivider(),
+          const SizedBox(height: AppDimensions.spacingMD),
+
+          // Sub Total
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Sub Total', style: TextStyle(fontSize: 13)),
+              Text(_currencyFormat.format(transaction.subtotal),
+                  style: const TextStyle(fontSize: 13)),
+            ],
+          ),
+
+          if (transaction.extraDiscount > 0 || transaction.discount != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Diskon', style: TextStyle(fontSize: 13)),
+                  Text(
+                    '- ${_currencyFormat.format(transaction.extraDiscount + (transaction.discount?.value ?? 0))}',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+
+          if (transaction.extraFee > 0 || transaction.fee != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Biaya', style: TextStyle(fontSize: 13)),
+                  Text(
+                    '+ ${_currencyFormat.format(transaction.extraFee + (transaction.fee?.value ?? 0))}',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+
+          const SizedBox(height: AppDimensions.spacingSM),
+
+          // TOTAL
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('TOTAL',
+                  style:
+                      TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(
+                _currencyFormat.format(transaction.total),
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 4),
+
+          // Bayar
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Bayar (${transaction.paymentMethod})',
+                  style: const TextStyle(fontSize: 13)),
+              Text(_currencyFormat.format(transaction.payAmount),
+                  style: const TextStyle(fontSize: 13)),
+            ],
+          ),
+
+          if (transaction.debtAmount > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Sisa Hutang',
+                      style:
+                          TextStyle(fontSize: 13, color: AppColors.error)),
+                  Text(
+                    _currencyFormat.format(transaction.debtAmount),
+                    style: const TextStyle(
+                        fontSize: 13, color: AppColors.error),
+                  ),
+                ],
+              ),
+            ),
+
+          const SizedBox(height: AppDimensions.spacingMD),
+          const _DashedDivider(),
+          const SizedBox(height: AppDimensions.spacingMD),
+
+          // Footer
+          const Text(
+            'Terimakasih telah berbelanja di Depot Kayu\nKembang Jaya',
+            textAlign: TextAlign.center,
+            style:
+                TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _downloadReceipt(Transaction transaction) async {
     try {
-      final image = await _screenshotController.capture(pixelRatio: 2.0);
-      if (image == null) {
-        if (mounted) showStatusSnackBar(context, message: 'Gagal mengambil gambar struk', type: SnackbarType.error);
-        return;
-      }
-
+      final image = await _screenshotController.captureFromWidget(
+        _buildStrukContent(transaction),
+        context: context,
+        pixelRatio: 2.0,
+      );
       final result = await ImageGallerySaver.saveImage(
         image,
         name: 'struk_${DateTime.now().millisecondsSinceEpoch}',
       );
-
       if (mounted) {
         if (result['isSuccess'] == true) {
-          showStatusSnackBar(context, message: 'Struk berhasil disimpan ke Galeri', type: SnackbarType.success);
+          showStatusSnackBar(context,
+              message: 'Struk berhasil disimpan ke Galeri',
+              type: SnackbarType.success);
         } else {
-          showStatusSnackBar(context, message: 'Gagal menyimpan struk: ${result['errorMessage']}', type: SnackbarType.error);
+          showStatusSnackBar(context,
+              message: 'Gagal menyimpan struk ke galeri',
+              type: SnackbarType.error);
         }
       }
     } catch (e) {
       debugPrint('Download error: $e');
       if (mounted) {
-        showStatusSnackBar(
-          context,
-          message: 'Gagal mengunduh struk: $e',
-          type: SnackbarType.error,
-        );
+        showStatusSnackBar(context,
+            message: 'Gagal menyimpan struk', type: SnackbarType.error);
       }
     }
   }
 
-  Future<void> _shareReceipt() async {
+  Future<void> _shareReceipt(Transaction transaction) async {
     try {
-      final image = await _screenshotController.capture(pixelRatio: 2.0);
-      if (image == null) {
-        if (mounted) showStatusSnackBar(context, message: 'Gagal mengambil gambar struk', type: SnackbarType.error);
-        return;
-      }
-
+      final image = await _screenshotController.captureFromWidget(
+        _buildStrukContent(transaction),
+        context: context,
+        pixelRatio: 2.0,
+      );
       final directory = await getTemporaryDirectory();
-      final imagePath = File('${directory.path}/struk_share_${DateTime.now().millisecondsSinceEpoch}.png');
+      final imagePath = File(
+          '${directory.path}/struk_share_${DateTime.now().millisecondsSinceEpoch}.png');
       await imagePath.writeAsBytes(image);
-
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(imagePath.path)],
@@ -80,38 +359,45 @@ class _StrukScreenState extends State<StrukScreen> {
     } catch (e) {
       debugPrint('Share error: $e');
       if (mounted) {
-        showStatusSnackBar(
-          context,
-          message: 'Gagal membagikan struk: $e',
-          type: SnackbarType.error,
-        );
+        showStatusSnackBar(context,
+            message: 'Gagal membagikan struk', type: SnackbarType.error);
       }
     }
   }
 
   Future<void> _printReceipt(Transaction transaction) async {
-    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
-    final storeSettings = settingsProvider.settings; // Dynamic type handled by PrinterService
-
     if (!PrinterService().isConnected) {
-      showStatusSnackBar(context, message: 'Printer belum terhubung. Silakan atur di Pengaturan.', type: SnackbarType.error);
+      if (mounted) {
+        showStatusSnackBar(context,
+            message: 'Printer belum terhubung. Silakan atur di Pengaturan.',
+            type: SnackbarType.error);
+      }
       return;
     }
-
+    final settings =
+        Provider.of<SettingsProvider>(context, listen: false).settings;
     try {
-      showStatusSnackBar(context, message: 'Sedang mencetak struk...', type: SnackbarType.success);
-      await PrinterService().printTransaction(transaction, storeSettings);
+      if (mounted) {
+        showStatusSnackBar(context,
+            message: 'Sedang mencetak struk...', type: SnackbarType.success);
+      }
+      await PrinterService().printTransaction(transaction, settings);
     } catch (e) {
-      if (!mounted) return;
-      showStatusSnackBar(context, message: 'Gagal mencetak: $e', type: SnackbarType.error);
+      debugPrint('Print error: $e');
+      if (mounted) {
+        showStatusSnackBar(context,
+            message: 'Gagal mencetak struk', type: SnackbarType.error);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final transaction = ModalRoute.of(context)?.settings.arguments as Transaction?;
+    final transaction =
+        ModalRoute.of(context)?.settings.arguments as Transaction?;
     if (transaction == null) {
-      return const Scaffold(body: Center(child: Text('Data transaksi tidak ditemukan')));
+      return const Scaffold(
+          body: Center(child: Text('Data transaksi tidak ditemukan')));
     }
 
     return Scaffold(
@@ -121,11 +407,11 @@ class _StrukScreenState extends State<StrukScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.share),
-            onPressed: _shareReceipt,
+            onPressed: () => _shareReceipt(transaction),
           ),
           IconButton(
             icon: const Icon(Icons.download),
-            onPressed: _downloadReceipt,
+            onPressed: () => _downloadReceipt(transaction),
           ),
           IconButton(
             icon: const Icon(Icons.print),
@@ -138,228 +424,7 @@ class _StrukScreenState extends State<StrukScreen> {
         child: Center(
           child: Screenshot(
             controller: _screenshotController,
-            child: Container(
-              width: 320, // Thermal printer width approximation
-              padding: const EdgeInsets.all(AppDimensions.spacingMD),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 10,
-                    offset: Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: Consumer2<SettingsProvider, AuthProvider>(
-                builder: (context, settingsProvider, authProvider, child) {
-                  final settings = settingsProvider.settings;
-                  // Dynamic properties from settings if available
-                  final storeName = (settings as dynamic)?.name ?? 'KEMBANG JAYA';
-                  final storeAddress = (settings as dynamic)?.address ?? 'Jl. Raya Industri No. 12, Sidoarjo';
-                  final storePhone = (settings as dynamic)?.phone ?? '08123456789';
-                  final logoUrl = (settings as dynamic)?.logoUrl;
-
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Logo
-                      if (logoUrl != null && logoUrl.isNotEmpty)
-                      AppLogo(logoUrl: logoUrl, height: 60, width: 60)
-                      else
-                        const Icon(Icons.store, size: 60, color: AppColors.textPrimary),
-                      
-                      const SizedBox(height: AppDimensions.spacingSM),
-                      
-                      // Store Name
-                      Text(
-                        storeName.toUpperCase(),
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 4),
-                      
-                      // Store Address
-                      Text(
-                        '$storeAddress\nTelp: $storePhone',
-                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                        textAlign: TextAlign.center,
-                      ),
-                      
-                      const SizedBox(height: AppDimensions.spacingMD),
-                      const _DashedDivider(),
-                      const SizedBox(height: AppDimensions.spacingMD),
-                      
-                      // Date & Cashier
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(DateFormat('dd MMM yyyy HH:mm').format(transaction.date), style: const TextStyle(fontSize: 12)),
-                          Text('Kasir: ${transaction.cashierName}', style: const TextStyle(fontSize: 12)),
-                        ],
-                      ),
-                      
-                      const SizedBox(height: AppDimensions.spacingMD),
-                      const _DashedDivider(),
-                      const SizedBox(height: AppDimensions.spacingMD),
-                      
-                      // Items
-                      ...transaction.items.expand((item) {
-                        final name = item.product.name.replaceAll(RegExp(r'\s*Grade.*', caseSensitive: false), '');
-                        final widgets = <Widget>[];
-
-                        if (item.customPrice == null && item.product.wholesalePrices.isNotEmpty) {
-                          final sortedTiers = List<WholesalePrice>.from(item.product.wholesalePrices)
-                            ..sort((a, b) => b.minQty.compareTo(a.minQty));
-                          final tier = sortedTiers.first;
-
-                          if (item.quantity >= tier.minQty) {
-                            final wholesaleQty = (item.quantity ~/ tier.minQty) * tier.minQty;
-                            final remainderQty = item.quantity % tier.minQty;
-
-                            // Baris nama
-                            widgets.add(Padding(
-                              padding: const EdgeInsets.only(bottom: 2),
-                              child: Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                            ));
-                            // Baris grosir
-                            widgets.add(Padding(
-                              padding: const EdgeInsets.only(bottom: 2),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text('$wholesaleQty x ${_currencyFormat.format(tier.price - item.itemDiscount)} (grosir)', style: const TextStyle(fontSize: 12)),
-                                  Text(_currencyFormat.format(wholesaleQty * (tier.price - item.itemDiscount)), style: const TextStyle(fontSize: 12)),
-                                ],
-                              ),
-                            ));
-                            // Baris ecer (jika ada sisa)
-                            if (remainderQty > 0) {
-                              widgets.add(Padding(
-                                padding: const EdgeInsets.only(bottom: AppDimensions.spacingSM),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text('$remainderQty x ${_currencyFormat.format(item.product.sellPrice - item.itemDiscount)} (ecer)', style: const TextStyle(fontSize: 12)),
-                                    Text(_currencyFormat.format(remainderQty * (item.product.sellPrice - item.itemDiscount)), style: const TextStyle(fontSize: 12)),
-                                  ],
-                                ),
-                              ));
-                            } else {
-                              widgets.add(const SizedBox(height: AppDimensions.spacingSM));
-                            }
-                            return widgets;
-                          }
-                        }
-
-                        // Default: item biasa (1 baris)
-                        widgets.add(Padding(
-                          padding: const EdgeInsets.only(bottom: AppDimensions.spacingSM),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                              const SizedBox(height: 2),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text('${item.quantity} x ${_currencyFormat.format(item.unitPrice - item.itemDiscount)}', style: const TextStyle(fontSize: 13)),
-                                  Text(_currencyFormat.format(item.subtotal), style: const TextStyle(fontSize: 13)),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ));
-                        return widgets;
-                      }),
-                          
-                      const SizedBox(height: AppDimensions.spacingSM),
-                      const _DashedDivider(),
-                      const SizedBox(height: AppDimensions.spacingMD),
-                      
-                      // Subtotals
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Sub Total', style: TextStyle(fontSize: 13)),
-                          Text(_currencyFormat.format(transaction.subtotal), style: const TextStyle(fontSize: 13)),
-                        ],
-                      ),
-                      
-                      if (transaction.extraDiscount > 0 || transaction.discount != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('Diskon', style: TextStyle(fontSize: 13)),
-                              Text('- ${_currencyFormat.format(transaction.extraDiscount + (transaction.discount?.value ?? 0))}', style: const TextStyle(fontSize: 13)),
-                            ],
-                          ),
-                        ),
-                        
-                      if (transaction.extraFee > 0 || transaction.fee != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('Biaya', style: TextStyle(fontSize: 13)),
-                              Text('+ ${_currencyFormat.format(transaction.extraFee + (transaction.fee?.value ?? 0))}', style: const TextStyle(fontSize: 13)),
-                            ],
-                          ),
-                        ),
-                        
-                      const SizedBox(height: AppDimensions.spacingSM),
-                      
-                      // Total
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('TOTAL', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                          Text(_currencyFormat.format(transaction.total), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                        ],
-                      ),
-                      
-                      const SizedBox(height: 4),
-                      
-                      // Pay
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Bayar (${transaction.paymentMethod})', style: const TextStyle(fontSize: 13)),
-                          Text(_currencyFormat.format(transaction.payAmount), style: const TextStyle(fontSize: 13)),
-                        ],
-                      ),
-                      
-                      if (transaction.debtAmount > 0)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('Sisa Hutang', style: TextStyle(fontSize: 13, color: AppColors.error)),
-                              Text(_currencyFormat.format(transaction.debtAmount), style: const TextStyle(fontSize: 13, color: AppColors.error)),
-                            ],
-                          ),
-                        ),
-                        
-                      const SizedBox(height: AppDimensions.spacingMD),
-                      const _DashedDivider(),
-                      const SizedBox(height: AppDimensions.spacingMD),
-                      
-                      // Footer
-                      const Text(
-                        'Terimakasih telah berbelanja di Depot Kayu\nKembang Jaya',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
+            child: _buildStrukContent(transaction),
           ),
         ),
       ),
@@ -374,17 +439,19 @@ class _DashedDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final dashWidth = 4.0;
-        final dashSpace = 3.0;
-        final dashCount = (constraints.maxWidth / (dashWidth + dashSpace)).floor();
+        const dashWidth = 4.0;
+        const dashSpace = 3.0;
+        final dashCount =
+            (constraints.maxWidth / (dashWidth + dashSpace)).floor();
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: List.generate(dashCount, (_) {
-            return SizedBox(
+            return const SizedBox(
               width: dashWidth,
               height: 1,
-              child: const DecoratedBox(
-                decoration: BoxDecoration(color: AppColors.textSecondary),
+              child: DecoratedBox(
+                decoration:
+                    BoxDecoration(color: AppColors.textSecondary),
               ),
             );
           }),
