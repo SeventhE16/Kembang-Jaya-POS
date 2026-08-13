@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart' hide Transaction;
 import '../../data/models/transaction_model.dart';
+import '../../data/models/product_model.dart';
 import 'store_context.dart';
 
 class TransactionService {
