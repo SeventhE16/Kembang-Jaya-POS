@@ -94,7 +94,7 @@ class ReportDetailScreen extends StatelessWidget {
                 for (var item in tx.items) {
                   costBasis += item.product.basePrice * item.quantity;
                 }
-                final keuntungan = tx.total - costBasis;
+                final keuntungan = tx.subtotal - costBasis;
 
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: AppDimensions.spacingMD),

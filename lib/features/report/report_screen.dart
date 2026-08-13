@@ -93,7 +93,7 @@ class _ReportScreenState extends State<ReportScreen> {
       for (var item in t.items) {
         costBasis += item.product.basePrice * item.quantity;
       }
-      grouped[key]!['keuntungan'] = (grouped[key]!['keuntungan'] as double) + (t.total - costBasis);
+      grouped[key]!['keuntungan'] = (grouped[key]!['keuntungan'] as double) + (t.subtotal - costBasis);
       grouped[key]!['count'] = (grouped[key]!['count'] as int) + 1;
     }
 
@@ -411,7 +411,7 @@ class _ReportScreenState extends State<ReportScreen> {
       for (var item in t.items) {
         costBasis += item.product.basePrice * item.quantity;
       }
-      return sum + (t.total - costBasis);
+      return sum + (t.subtotal - costBasis);
     });
     final totalTransaksi = transactions.length;
 
