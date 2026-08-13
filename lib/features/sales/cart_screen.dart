@@ -701,12 +701,12 @@ class _CartScreenState extends State<CartScreen> {
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.info_outline, color: AppColors.primary, size: 20),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Untung: ${_currencyFormat.format(_totalKeuntungan)}',
-                                style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 13),
+                              const Text(
+                                'Keuntungan',
+                                style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600),
                               ),
+                              const SizedBox(width: AppDimensions.spacingSM),
+                              const Icon(Icons.info_outline, color: AppColors.primary, size: 20),
                             ],
                           ),
                         ),
