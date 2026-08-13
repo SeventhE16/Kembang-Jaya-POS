@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
@@ -336,7 +336,7 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
   Future<void> _downloadStruk(Transaction? transaction) async {
     try {
       final image = await _screenshotController.captureFromWidget(_buildStrukContent(transaction));
-      final result = await ImageGallerySaver.saveImage(
+      final result = await ImageGallerySaverPlus.saveImage(
         image, 
         name: 'struk_${DateTime.now().millisecondsSinceEpoch}',
       );

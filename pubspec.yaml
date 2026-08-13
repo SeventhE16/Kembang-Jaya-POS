@@ -51,7 +51,7 @@ dependencies:
   firebase_storage: ^13.4.5
   image: ^4.9.1
   http: ^1.6.0
-  image_gallery_saver: ^2.0.3
+  image_gallery_saver_plus: ^5.1.1
 
 dev_dependencies:
   flutter_test:

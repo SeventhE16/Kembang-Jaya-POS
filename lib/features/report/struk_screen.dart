@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -315,7 +315,7 @@ class _StrukScreenState extends State<StrukScreen> {
         context: context,
         pixelRatio: 2.0,
       );
-      final result = await ImageGallerySaver.saveImage(
+      final result = await ImageGallerySaverPlus.saveImage(
         image,
         name: 'struk_${DateTime.now().millisecondsSinceEpoch}',
       );
