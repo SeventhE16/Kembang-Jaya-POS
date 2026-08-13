@@ -29,8 +29,11 @@ class _StrukScreenState extends State<StrukScreen> {
 
   Future<void> _downloadReceipt() async {
     try {
-      final image = await _screenshotController.capture();
-      if (image == null) return;
+      final image = await _screenshotController.capture(pixelRatio: 2.0);
+      if (image == null) {
+        if (mounted) showStatusSnackBar(context, message: 'Gagal mengambil gambar struk', type: SnackbarType.error);
+        return;
+      }
 
       final result = await ImageGallerySaver.saveImage(
         image,
@@ -45,10 +48,11 @@ class _StrukScreenState extends State<StrukScreen> {
         }
       }
     } catch (e) {
+      debugPrint('Download error: $e');
       if (mounted) {
         showStatusSnackBar(
           context,
-          message: 'Gagal mengunduh struk',
+          message: 'Gagal mengunduh struk: $e',
           type: SnackbarType.error,
         );
       }
@@ -57,22 +61,28 @@ class _StrukScreenState extends State<StrukScreen> {
 
   Future<void> _shareReceipt() async {
     try {
-      final image = await _screenshotController.capture();
-      if (image == null) return;
+      final image = await _screenshotController.capture(pixelRatio: 2.0);
+      if (image == null) {
+        if (mounted) showStatusSnackBar(context, message: 'Gagal mengambil gambar struk', type: SnackbarType.error);
+        return;
+      }
 
       final directory = await getTemporaryDirectory();
-      final imagePath = await File('${directory.path}/struk_share.png').create();
+      final imagePath = File('${directory.path}/struk_share_${DateTime.now().millisecondsSinceEpoch}.png');
       await imagePath.writeAsBytes(image);
 
-      await Share.shareXFiles(
-        [XFile(imagePath.path)],
-        text: 'Terima kasih telah berbelanja di toko kami!',
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(imagePath.path)],
+          text: 'Terima kasih telah berbelanja di toko kami!',
+        ),
       );
     } catch (e) {
+      debugPrint('Share error: $e');
       if (mounted) {
         showStatusSnackBar(
           context,
-          message: 'Gagal membagikan struk',
+          message: 'Gagal membagikan struk: $e',
           type: SnackbarType.error,
         );
       }
