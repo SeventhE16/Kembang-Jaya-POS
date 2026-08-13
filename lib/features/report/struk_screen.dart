@@ -11,6 +11,7 @@ import '../../core/constants/app_dimensions.dart';
 import '../../core/widgets/app_logo.dart';
 import '../../core/widgets/status_dialog.dart';
 import '../../data/models/transaction_model.dart';
+import '../../data/models/product_model.dart';
 import '../../data/providers/settings_provider.dart';
 import '../../data/providers/auth_provider.dart';
 import '../../core/services/printer_service.dart';
@@ -194,23 +195,74 @@ class _StrukScreenState extends State<StrukScreen> {
                       const SizedBox(height: AppDimensions.spacingMD),
                       
                       // Items
-                      ...transaction.items.map((item) => Padding(
-                            padding: const EdgeInsets.only(bottom: AppDimensions.spacingSM),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(item.product.name.replaceAll(RegExp(r'\s*Grade.*', caseSensitive: false), ''), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                                const SizedBox(height: 2),
-                                Row(
+                      ...transaction.items.expand((item) {
+                        final name = item.product.name.replaceAll(RegExp(r'\s*Grade.*', caseSensitive: false), '');
+                        final widgets = <Widget>[];
+
+                        if (item.customPrice == null && item.product.wholesalePrices.isNotEmpty) {
+                          final sortedTiers = List<WholesalePrice>.from(item.product.wholesalePrices)
+                            ..sort((a, b) => b.minQty.compareTo(a.minQty));
+                          final tier = sortedTiers.first;
+
+                          if (item.quantity >= tier.minQty) {
+                            final wholesaleQty = (item.quantity ~/ tier.minQty) * tier.minQty;
+                            final remainderQty = item.quantity % tier.minQty;
+
+                            // Baris nama
+                            widgets.add(Padding(
+                              padding: const EdgeInsets.only(bottom: 2),
+                              child: Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                            ));
+                            // Baris grosir
+                            widgets.add(Padding(
+                              padding: const EdgeInsets.only(bottom: 2),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('$wholesaleQty x ${_currencyFormat.format(tier.price - item.itemDiscount)} (grosir)', style: const TextStyle(fontSize: 12)),
+                                  Text(_currencyFormat.format(wholesaleQty * (tier.price - item.itemDiscount)), style: const TextStyle(fontSize: 12)),
+                                ],
+                              ),
+                            ));
+                            // Baris ecer (jika ada sisa)
+                            if (remainderQty > 0) {
+                              widgets.add(Padding(
+                                padding: const EdgeInsets.only(bottom: AppDimensions.spacingSM),
+                                child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text('${item.quantity} x ${_currencyFormat.format(item.unitPrice - item.itemDiscount)}', style: const TextStyle(fontSize: 13)),
-                                    Text(_currencyFormat.format(item.subtotal), style: const TextStyle(fontSize: 13)),
+                                    Text('$remainderQty x ${_currencyFormat.format(item.product.sellPrice - item.itemDiscount)} (ecer)', style: const TextStyle(fontSize: 12)),
+                                    Text(_currencyFormat.format(remainderQty * (item.product.sellPrice - item.itemDiscount)), style: const TextStyle(fontSize: 12)),
                                   ],
                                 ),
-                              ],
-                            ),
-                          )),
+                              ));
+                            } else {
+                              widgets.add(const SizedBox(height: AppDimensions.spacingSM));
+                            }
+                            return widgets;
+                          }
+                        }
+
+                        // Default: item biasa (1 baris)
+                        widgets.add(Padding(
+                          padding: const EdgeInsets.only(bottom: AppDimensions.spacingSM),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                              const SizedBox(height: 2),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('${item.quantity} x ${_currencyFormat.format(item.unitPrice - item.itemDiscount)}', style: const TextStyle(fontSize: 13)),
+                                  Text(_currencyFormat.format(item.subtotal), style: const TextStyle(fontSize: 13)),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ));
+                        return widgets;
+                      }),
                           
                       const SizedBox(height: AppDimensions.spacingSM),
                       const _DashedDivider(),

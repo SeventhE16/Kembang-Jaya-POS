@@ -54,7 +54,27 @@ class CartItem {
     }
     return product.sellPrice;
   }
-  double get subtotal => (unitPrice - itemDiscount) * quantity;
+  double get subtotal {
+    if (customPrice != null) return (customPrice! - itemDiscount) * quantity;
+
+    if (product.wholesalePrices.isNotEmpty) {
+      final sortedTiers = List<WholesalePrice>.from(product.wholesalePrices)
+        ..sort((a, b) => b.minQty.compareTo(a.minQty));
+      final tier = sortedTiers.first;
+
+      if (quantity >= tier.minQty) {
+        final wholesaleUnits = (quantity ~/ tier.minQty) * tier.minQty;
+        final remainderUnits = quantity % tier.minQty;
+        double total = wholesaleUnits * (tier.price - itemDiscount);
+        if (remainderUnits > 0) {
+          total += remainderUnits * (product.sellPrice - itemDiscount);
+        }
+        return total;
+      }
+    }
+
+    return (product.sellPrice - itemDiscount) * quantity;
+  }
 }
 
 class HoldOrder {

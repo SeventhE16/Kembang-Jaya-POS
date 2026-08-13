@@ -14,6 +14,7 @@ import 'package:provider/provider.dart';
 import '../../data/providers/cart_provider.dart';
 import '../../data/providers/settings_provider.dart';
 import '../../data/models/transaction_model.dart';
+import '../../data/models/product_model.dart';
 import '../../core/services/printer_service.dart';
 import '../../core/services/settings_service.dart';
 import '../../data/providers/auth_provider.dart';
@@ -108,13 +109,48 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
           const _DashedDivider(),
           const SizedBox(height: 8),
           // Items
-          ...cart.map((item) {
-            return Padding(
+          ...cart.expand((item) {
+            final name = item.product.name.replaceAll(RegExp(r'\s*Grade.*', caseSensitive: false), '');
+            final widgets = <Widget>[];
+
+            if (item.customPrice == null && item.product.wholesalePrices.isNotEmpty) {
+              final sortedTiers = List<WholesalePrice>.from(item.product.wholesalePrices)
+                ..sort((a, b) => b.minQty.compareTo(a.minQty));
+              final tier = sortedTiers.first;
+
+              if (item.quantity >= tier.minQty) {
+                final wholesaleQty = (item.quantity ~/ tier.minQty) * tier.minQty;
+                final remainderQty = item.quantity % tier.minQty;
+
+                widgets.add(Text(name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black)));
+                widgets.add(Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('$wholesaleQty x ${_currencyFormat.format(tier.price - item.itemDiscount)} (grosir)', style: const TextStyle(fontSize: 12, color: Colors.black87)),
+                    Text(_currencyFormat.format(wholesaleQty * (tier.price - item.itemDiscount)), style: const TextStyle(fontSize: 12, color: Colors.black87)),
+                  ],
+                ));
+                if (remainderQty > 0) {
+                  widgets.add(Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('$remainderQty x ${_currencyFormat.format(item.product.sellPrice - item.itemDiscount)} (ecer)', style: const TextStyle(fontSize: 12, color: Colors.black87)),
+                      Text(_currencyFormat.format(remainderQty * (item.product.sellPrice - item.itemDiscount)), style: const TextStyle(fontSize: 12, color: Colors.black87)),
+                    ],
+                  ));
+                }
+                widgets.add(const SizedBox(height: 8));
+                return widgets;
+              }
+            }
+
+            // Default: item biasa
+            widgets.add(Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(item.product.name.replaceAll(RegExp(r'\s*Grade.*', caseSensitive: false), ''), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black)),
+                  Text(name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black)),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -124,7 +160,8 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
                   ),
                 ],
               ),
-            );
+            ));
+            return widgets;
           }),
           const SizedBox(height: 4),
           const _DashedDivider(),

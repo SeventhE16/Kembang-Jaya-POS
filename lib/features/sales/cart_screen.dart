@@ -29,7 +29,24 @@ class _CartScreenState extends State<CartScreen> {
     decimalDigits: 0,
   );
 
-  bool _isWholesaleRow(String key) => key.endsWith('_grosir');
+  bool _hasMixedPricing(CartItem item) {
+    if (item.customPrice != null) return false;
+    if (item.product.wholesalePrices.isEmpty) return false;
+    final sortedTiers = List<WholesalePrice>.from(item.product.wholesalePrices)
+      ..sort((a, b) => b.minQty.compareTo(a.minQty));
+    final tier = sortedTiers.first;
+    return item.quantity >= tier.minQty && item.quantity % tier.minQty != 0;
+  }
+
+  WholesalePrice? _getApplicableTier(CartItem item) {
+    if (item.product.wholesalePrices.isEmpty) return null;
+    final sortedTiers = List<WholesalePrice>.from(item.product.wholesalePrices)
+      ..sort((a, b) => b.minQty.compareTo(a.minQty));
+    for (var tier in sortedTiers) {
+      if (item.quantity >= tier.minQty) return tier;
+    }
+    return null;
+  }
 
   double get _subtotal {
     return _cart.activeCart.values.fold(0.0, (sum, item) => sum + item.subtotal);
@@ -511,26 +528,35 @@ class _CartScreenState extends State<CartScreen> {
                                             style: Theme.of(context).textTheme.titleSmall,
                                           ),
                                         ),
-                                        if (_isWholesaleRow(key))
-                                          Container(
-                                            margin: const EdgeInsets.only(left: 8),
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                            decoration: BoxDecoration(
-                                              color: AppColors.success.withValues(alpha: 0.15),
-                                              borderRadius: BorderRadius.circular(4),
-                                            ),
-                                            child: const Text(
-                                              'Grosir',
-                                              style: TextStyle(fontSize: 10, color: AppColors.success, fontWeight: FontWeight.bold),
-                                            ),
-                                          ),
                                       ],
                                     ),
                                     const SizedBox(height: 4),
-                                    Text(
-                                      _currencyFormat.format(item.unitPrice),
-                                      style: const TextStyle(fontSize: 14, color: AppColors.primary, fontWeight: FontWeight.w500),
-                                    ),
+                                    // Tampilan harga: jika mixed grosir+ecer, tampilkan info breakdown
+                                    if (_hasMixedPricing(item)) ...[  
+                                      Builder(builder: (context) {
+                                        final tier = _getApplicableTier(item)!;
+                                        final wholesaleQty = (item.quantity ~/ tier.minQty) * tier.minQty;
+                                        final remainderQty = item.quantity % tier.minQty;
+                                        return Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              '${_currencyFormat.format(tier.price)} × $wholesaleQty (grosir)',
+                                              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                            ),
+                                            Text(
+                                              '${_currencyFormat.format(item.product.sellPrice)} × $remainderQty (ecer)',
+                                              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                            ),
+                                          ],
+                                        );
+                                      }),
+                                    ] else ...[  
+                                      Text(
+                                        _currencyFormat.format(item.unitPrice),
+                                        style: const TextStyle(fontSize: 14, color: AppColors.primary, fontWeight: FontWeight.w500),
+                                      ),
+                                    ],
                                   ],
                                 ),
                               ),

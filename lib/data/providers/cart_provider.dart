@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../data/models/transaction_model.dart';
-import '../../data/models/product_model.dart';
 import '../../data/models/customer_model.dart';
 import '../../data/models/discount_model.dart';
 import '../../data/models/fee_model.dart';
@@ -44,107 +43,37 @@ class CartProvider extends ChangeNotifier {
     super.dispose();
   }
 
-  // Helper: total qty dari baris grosir + ecer untuk satu produk
-  int _getTotalQtyForProduct(String productId) {
-    final ecerQty = _activeCart[productId]?.quantity ?? 0;
-    final grosirQty = _activeCart['${productId}_grosir']?.quantity ?? 0;
-    return ecerQty + grosirQty;
-  }
-
-  // Helper: breakdown qty jadi baris grosir dan ecer
-  void _applyWholesaleBreakdown(Product product, int totalQty) {
-    if (totalQty <= 0) {
-      _activeCart.remove(product.id);
-      _activeCart.remove('${product.id}_grosir');
-      return;
-    }
-
-    // Ambil tier grosir tertinggi
-    if (product.wholesalePrices.isEmpty) return;
-    final sortedTiers = List<WholesalePrice>.from(product.wholesalePrices)
-      ..sort((a, b) => b.minQty.compareTo(a.minQty));
-    final tier = sortedTiers.first;
-
-    final wholesaleUnits = (totalQty ~/ tier.minQty) * tier.minQty;
-    final remainderUnits = totalQty % tier.minQty;
-
-    if (wholesaleUnits > 0) {
-      if (_activeCart.containsKey('${product.id}_grosir')) {
-        _activeCart['${product.id}_grosir']!.quantity = wholesaleUnits;
-      } else {
-        _activeCart['${product.id}_grosir'] = CartItem(product: product, quantity: wholesaleUnits);
-      }
-    } else {
-      _activeCart.remove('${product.id}_grosir');
-    }
-
-    if (remainderUnits > 0) {
-      if (_activeCart.containsKey(product.id)) {
-        _activeCart[product.id]!.quantity = remainderUnits;
-      } else {
-        _activeCart[product.id] = CartItem(product: product, quantity: remainderUnits);
-      }
-    } else {
-      _activeCart.remove(product.id);
-    }
-  }
 
   void addItem(CartItem item) {
-    final product = item.product;
-    if (product.wholesalePrices.isNotEmpty) {
-      final currentTotal = _getTotalQtyForProduct(product.id);
-      _applyWholesaleBreakdown(product, currentTotal + item.quantity);
+    if (_activeCart.containsKey(item.product.id)) {
+      _activeCart[item.product.id]!.quantity += item.quantity;
     } else {
-      if (_activeCart.containsKey(product.id)) {
-        _activeCart[product.id]!.quantity += item.quantity;
-      } else {
-        _activeCart[product.id] = item;
-      }
+      _activeCart[item.product.id] = item;
     }
     notifyListeners();
   }
 
   void updateQuantity(String productId, int delta) {
-    // Cari product dari baris grosir atau ecer
-    final baseId = productId.replaceAll('_grosir', '');
-    final product = _activeCart[productId]?.product ?? _activeCart[baseId]?.product;
-    if (product == null) return;
-
-    if (product.wholesalePrices.isNotEmpty) {
-      final currentTotal = _getTotalQtyForProduct(baseId);
-      final newTotal = currentTotal + delta;
-      _applyWholesaleBreakdown(product, newTotal);
-    } else {
-      if (_activeCart.containsKey(productId)) {
-        final item = _activeCart[productId]!;
-        if (item.quantity + delta > 0) {
-          item.quantity += delta;
-        } else {
-          _activeCart.remove(productId);
-        }
+    if (_activeCart.containsKey(productId)) {
+      final item = _activeCart[productId]!;
+      if (item.quantity + delta > 0) {
+        item.quantity += delta;
+      } else {
+        _activeCart.remove(productId);
       }
+      notifyListeners();
     }
-    notifyListeners();
   }
 
   void setQuantity(String productId, int qty) {
-    final baseId = productId.replaceAll('_grosir', '');
-    final product = _activeCart[productId]?.product ?? _activeCart[baseId]?.product;
-    
-    if (product != null && product.wholesalePrices.isNotEmpty) {
-      // Hitung total baru: ganti qty baris yang diedit, pertahankan baris lain
-      final otherKey = productId.endsWith('_grosir') ? baseId : '${baseId}_grosir';
-      final otherQty = _activeCart[otherKey]?.quantity ?? 0;
-      final newTotal = qty + otherQty;
-      _applyWholesaleBreakdown(product, newTotal);
-    } else if (_activeCart.containsKey(productId)) {
+    if (_activeCart.containsKey(productId)) {
       if (qty > 0) {
         _activeCart[productId]!.quantity = qty;
       } else {
         _activeCart.remove(productId);
       }
+      notifyListeners();
     }
-    notifyListeners();
   }
 
   void setItemPrice(String productId, double price) {
