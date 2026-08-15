@@ -7,6 +7,7 @@ import '../../core/widgets/status_dialog.dart';
 import 'package:provider/provider.dart';
 import '../../data/providers/fee_provider.dart';
 import '../../data/models/fee_model.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class AddFeeScreen extends StatefulWidget {
   const AddFeeScreen({super.key});
@@ -80,12 +81,12 @@ class _AddFeeScreenState extends State<AddFeeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Informasi Biaya',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: context.colorTextPrimary,
               ),
             ),
             const SizedBox(height: AppDimensions.spacingMD),
@@ -114,6 +115,5 @@ class _AddFeeScreenState extends State<AddFeeScreen> {
     );
   }
 }
-
 
 

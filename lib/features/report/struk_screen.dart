@@ -14,6 +14,7 @@ import '../../data/models/transaction_model.dart';
 import '../../data/models/product_model.dart';
 import '../../data/providers/settings_provider.dart';
 import '../../core/services/printer_service.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class StrukScreen extends StatefulWidget {
   const StrukScreen({super.key});
@@ -56,7 +57,7 @@ class _StrukScreenState extends State<StrukScreen> {
           if (logoUrl != null && logoUrl.isNotEmpty)
             AppLogo(logoUrl: logoUrl, height: 60, width: 60)
           else
-            const Icon(Icons.store, size: 60, color: AppColors.textPrimary),
+            Icon(Icons.store, size: 60, color: context.colorTextPrimary),
 
           const SizedBox(height: AppDimensions.spacingSM),
 
@@ -75,7 +76,7 @@ class _StrukScreenState extends State<StrukScreen> {
                 if (storeAddress.isNotEmpty) storeAddress,
                 if (storePhone.isNotEmpty) 'Telp: $storePhone',
               ].join('\n'),
-              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              style: TextStyle(fontSize: 12, color: context.colorTextSecondary),
               textAlign: TextAlign.center,
             ),
 
@@ -235,7 +236,10 @@ class _StrukScreenState extends State<StrukScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Biaya', style: TextStyle(fontSize: 13)),
+                  Text(
+                    transaction.fee?.name ?? 'Biaya',
+                    style: const TextStyle(fontSize: 13),
+                  ),
                   Text(
                     '+ ${_currencyFormat.format(transaction.extraFee + (transaction.fee?.value ?? 0))}',
                     style: const TextStyle(fontSize: 13),
@@ -280,13 +284,13 @@ class _StrukScreenState extends State<StrukScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Sisa Hutang',
+                  Text('Sisa Hutang',
                       style:
-                          TextStyle(fontSize: 13, color: AppColors.error)),
+                          TextStyle(fontSize: 13, color: context.colorError)),
                   Text(
                     _currencyFormat.format(transaction.debtAmount),
-                    style: const TextStyle(
-                        fontSize: 13, color: AppColors.error),
+                    style: TextStyle(
+                        fontSize: 13, color: context.colorError),
                   ),
                 ],
               ),
@@ -297,11 +301,11 @@ class _StrukScreenState extends State<StrukScreen> {
           const SizedBox(height: AppDimensions.spacingMD),
 
           // Footer
-          const Text(
+          Text(
             'Terimakasih telah berbelanja di Depot Kayu\nKembang Jaya',
             textAlign: TextAlign.center,
             style:
-                TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                TextStyle(fontSize: 12, color: context.colorTextSecondary),
           ),
         ],
       ),
@@ -401,7 +405,7 @@ class _StrukScreenState extends State<StrukScreen> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colorBackground,
       appBar: AppBar(
         title: const Text('Struk Pembayaran'),
         actions: [
@@ -446,12 +450,12 @@ class _DashedDivider extends StatelessWidget {
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: List.generate(dashCount, (_) {
-            return const SizedBox(
+            return SizedBox(
               width: dashWidth,
               height: 1,
               child: DecoratedBox(
                 decoration:
-                    BoxDecoration(color: AppColors.textSecondary),
+                    BoxDecoration(color: context.colorTextSecondary),
               ),
             );
           }),

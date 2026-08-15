@@ -1,7 +1,6 @@
 import '../../core/widgets/status_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/widgets/app_button.dart';
@@ -14,6 +13,7 @@ import '../../data/models/transaction_model.dart';
 import '../../data/models/product_model.dart';
 
 import 'package:intl/intl.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -141,8 +141,8 @@ class _CartScreenState extends State<CartScreen> {
             _buildInfoRow('Total Modal', _totalModal),
             _buildInfoRow('Total Diskon Barang', _totalDiskon),
             const Divider(height: 24),
-            _buildInfoRow('Total Keuntungan', _totalKeuntungan, isBold: true, color: AppColors.primary),
-            _buildInfoRowString('Margin Penjualan', '${_margin.toStringAsFixed(1)}%', isBold: true, color: AppColors.primary),
+            _buildInfoRow('Total Keuntungan', _totalKeuntungan, isBold: true, color: context.colorPrimary),
+            _buildInfoRowString('Margin Penjualan', '${_margin.toStringAsFixed(1)}%', isBold: true, color: context.colorPrimary),
             const SizedBox(height: AppDimensions.spacingLG),
             AppButton(
               label: 'Tutup',
@@ -170,7 +170,7 @@ class _CartScreenState extends State<CartScreen> {
             style: TextStyle(
               fontSize: 15,
               fontWeight: isBold ? FontWeight.w600 : FontWeight.w400,
-              color: AppColors.textSecondary,
+              color: context.colorTextSecondary,
             ),
           ),
           Text(
@@ -178,7 +178,7 @@ class _CartScreenState extends State<CartScreen> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
-              color: color ?? AppColors.textPrimary,
+              color: color ?? context.colorTextPrimary,
             ),
           ),
         ],
@@ -239,7 +239,7 @@ class _CartScreenState extends State<CartScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('Batal', style: TextStyle(color: context.colorTextSecondary)),
           ),
           AppButton(
             label: 'Simpan',
@@ -314,7 +314,7 @@ class _CartScreenState extends State<CartScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('Batal', style: TextStyle(color: context.colorTextSecondary)),
           ),
           AppButton(
             label: 'Simpan',
@@ -380,7 +380,7 @@ class _CartScreenState extends State<CartScreen> {
                   const SizedBox(height: 4),
                   Text(
                     item.product.name.replaceAll(RegExp(r'\s*Grade.*', caseSensitive: false), ''),
-                    style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                    style: TextStyle(fontSize: 13, color: context.colorTextSecondary),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -391,19 +391,19 @@ class _CartScreenState extends State<CartScreen> {
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     autofocus: true,
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: context.colorTextPrimary),
                     decoration: InputDecoration(
                       prefixText: 'Rp ',
-                      prefixStyle: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                      prefixStyle: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: context.colorTextSecondary),
                       filled: true,
-                      fillColor: AppColors.inputFill,
+                      fillColor: context.colorInputFill,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppDimensions.radius),
                         borderSide: BorderSide.none,
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppDimensions.radius),
-                        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                        borderSide: BorderSide(color: context.colorPrimary, width: 1.5),
                       ),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     ),
@@ -416,13 +416,13 @@ class _CartScreenState extends State<CartScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
                       color: profitPositive
-                          ? AppColors.success.withValues(alpha: 0.08)
-                          : AppColors.error.withValues(alpha: 0.08),
+                          ? context.colorSuccess.withValues(alpha: 0.08)
+                          : context.colorError.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(AppDimensions.radius),
                       border: Border.all(
                         color: profitPositive
-                            ? AppColors.success.withValues(alpha: 0.3)
-                            : AppColors.error.withValues(alpha: 0.3),
+                            ? context.colorSuccess.withValues(alpha: 0.3)
+                            : context.colorError.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Row(
@@ -433,14 +433,14 @@ class _CartScreenState extends State<CartScreen> {
                             Icon(
                               profitPositive ? Icons.trending_up_rounded : Icons.trending_down_rounded,
                               size: 18,
-                              color: profitPositive ? AppColors.success : AppColors.error,
+                              color: profitPositive ? context.colorSuccess : context.colorError,
                             ),
                             const SizedBox(width: 8),
                             Text(
                               'Keuntungan per barang',
                               style: TextStyle(
                                 fontSize: 13,
-                                color: profitPositive ? AppColors.success : AppColors.error,
+                                color: profitPositive ? context.colorSuccess : context.colorError,
                               ),
                             ),
                           ],
@@ -450,7 +450,7 @@ class _CartScreenState extends State<CartScreen> {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: profitPositive ? AppColors.success : AppColors.error,
+                            color: profitPositive ? context.colorSuccess : context.colorError,
                           ),
                         ),
                       ],
@@ -460,7 +460,7 @@ class _CartScreenState extends State<CartScreen> {
                   // Hint harga modal
                   Text(
                     'Harga modal: ${_currencyFormat.format(basePrice)}',
-                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    style: TextStyle(fontSize: 12, color: context.colorTextSecondary),
                   ),
                   const SizedBox(height: 20),
                   // Tombol aksi
@@ -471,10 +471,10 @@ class _CartScreenState extends State<CartScreen> {
                           onPressed: () => Navigator.pop(ctx),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 14),
-                            side: const BorderSide(color: AppColors.textSecondary),
+                            side: BorderSide(color: context.colorTextSecondary),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radius)),
                           ),
-                          child: const Text('Batal', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
+                          child: Text('Batal', style: TextStyle(color: context.colorTextSecondary, fontWeight: FontWeight.w600)),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -488,7 +488,7 @@ class _CartScreenState extends State<CartScreen> {
                             Navigator.pop(ctx);
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
+                            backgroundColor: context.colorPrimary,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radius)),
@@ -515,8 +515,8 @@ class _CartScreenState extends State<CartScreen> {
         title: Text('Keranjang', style: Theme.of(context).textTheme.titleLarge),
         actions: [
           IconButton(
-            icon: const Icon(Icons.pause, color: AppColors.primary),
-            tooltip: 'Hold Order',
+            icon: Icon(Icons.shopping_basket_outlined, color: context.colorPrimary),
+            tooltip: 'Keranjang Tersimpan',
             onPressed: _holdOrder,
           ),
         ],
@@ -570,11 +570,11 @@ class _CartScreenState extends State<CartScreen> {
                                           children: [
                                             Text(
                                               '${_currencyFormat.format(tier.price)} × $wholesaleQty (grosir)',
-                                              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                              style: TextStyle(fontSize: 12, color: context.colorTextSecondary),
                                             ),
                                             Text(
                                               '${_currencyFormat.format(item.product.sellPrice)} × $remainderQty (ecer)',
-                                              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                              style: TextStyle(fontSize: 12, color: context.colorTextSecondary),
                                             ),
                                           ],
                                         );
@@ -582,7 +582,7 @@ class _CartScreenState extends State<CartScreen> {
                                     ] else ...[  
                                       Text(
                                         _currencyFormat.format(item.unitPrice),
-                                        style: const TextStyle(fontSize: 14, color: AppColors.primary, fontWeight: FontWeight.w500),
+                                        style: TextStyle(fontSize: 14, color: context.colorPrimary, fontWeight: FontWeight.w500),
                                       ),
                                     ],
                                   ],
@@ -621,12 +621,12 @@ class _CartScreenState extends State<CartScreen> {
                             if (item.itemDiscount > 0)
                               Text(
                                 'Diskon: -${_currencyFormat.format(item.itemDiscount)}',
-                                style: const TextStyle(fontSize: 13, color: AppColors.warning),
+                                style: TextStyle(fontSize: 13, color: context.colorWarning),
                               ),
                             if (item.note != null)
                               Text(
                                 'Catatan: ${item.note}',
-                                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontStyle: FontStyle.italic),
+                                style: TextStyle(fontSize: 13, color: context.colorTextSecondary, fontStyle: FontStyle.italic),
                               ),
                           ],
                           const SizedBox(height: 6),
@@ -635,10 +635,10 @@ class _CartScreenState extends State<CartScreen> {
                             alignment: Alignment.centerRight,
                             child: Text(
                               'Total: ${_currencyFormat.format(item.subtotal)}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
-                                color: AppColors.textSecondary,
+                                color: context.colorTextSecondary,
                               ),
                             ),
                           ),
@@ -659,7 +659,7 @@ class _CartScreenState extends State<CartScreen> {
                               // Qty controls
                               Container(
                                 decoration: BoxDecoration(
-                                  color: AppColors.inputFill,
+                                  color: context.colorInputFill,
                                   borderRadius: BorderRadius.circular(AppDimensions.radius),
                                 ),
                                 child: Row(
@@ -676,7 +676,7 @@ class _CartScreenState extends State<CartScreen> {
                                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                         child: Text(
                                           '${item.quantity}',
-                                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.primary),
+                                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: context.colorPrimary),
                                         ),
                                       ),
                                     ),
@@ -723,17 +723,17 @@ class _CartScreenState extends State<CartScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
-                            border: Border.all(color: AppColors.primary),
+                            border: Border.all(color: context.colorPrimary),
                             borderRadius: BorderRadius.circular(AppDimensions.radius),
                           ),
                           child: Row(
                             children: [
-                              const Text(
+                              Text(
                                 'Keuntungan',
-                                style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600),
+                                style: TextStyle(color: context.colorPrimary, fontWeight: FontWeight.w600),
                               ),
                               const SizedBox(width: AppDimensions.spacingSM),
-                              const Icon(Icons.info_outline, color: AppColors.primary, size: 20),
+                              Icon(Icons.info_outline, color: context.colorPrimary, size: 20),
                             ],
                           ),
                         ),
@@ -747,16 +747,16 @@ class _CartScreenState extends State<CartScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
-                            border: Border.all(color: AppColors.primary),
+                            border: Border.all(color: context.colorPrimary),
                             borderRadius: BorderRadius.circular(AppDimensions.radius),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.person_outline, color: AppColors.primary, size: 20),
+                              Icon(Icons.person_outline, color: context.colorPrimary, size: 20),
                               const SizedBox(width: AppDimensions.spacingSM),
                               Text(
                                 _cart.activeCustomer?.name ?? 'Tambah Pelanggan',
-                                style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600),
+                                style: TextStyle(color: context.colorPrimary, fontWeight: FontWeight.w600),
                               ),
                             ],
                           ),
@@ -790,12 +790,12 @@ class _CartScreenState extends State<CartScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          color: AppColors.chipInactive,
+          color: context.colorChipInactive,
           borderRadius: BorderRadius.circular(AppDimensions.radius),
         ),
         child: Text(
           label,
-          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+          style: TextStyle(fontSize: 12, color: context.colorTextSecondary, fontWeight: FontWeight.w500),
         ),
       ),
     );
@@ -814,6 +814,3 @@ class _CartScreenState extends State<CartScreen> {
     }
   }
 }
-
-
-

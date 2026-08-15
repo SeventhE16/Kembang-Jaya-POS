@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_drawer.dart';
@@ -9,6 +8,7 @@ import '../../data/providers/transaction_provider.dart';
 import '../../data/models/transaction_model.dart';
 import '../../core/constants/app_routes.dart';
 import 'package:intl/intl.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class HoldOrderScreen extends StatefulWidget {
   const HoldOrderScreen({super.key});
@@ -38,7 +38,7 @@ class _HoldOrderScreenState extends State<HoldOrderScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Batal', style: TextStyle(color: AppColors.textSecondary)),
+              child: Text('Batal', style: TextStyle(color: context.colorTextSecondary)),
             ),
             AppButton(
               label: 'Ya, Simpan & Buka',
@@ -89,7 +89,7 @@ class _HoldOrderScreenState extends State<HoldOrderScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('Batal', style: TextStyle(color: context.colorTextSecondary)),
           ),
           AppButton(
             label: 'Hapus',
@@ -115,13 +115,13 @@ class _HoldOrderScreenState extends State<HoldOrderScreen> {
             onPressed: () => Scaffold.of(ctx).openDrawer(),
           ),
         ),
-        title: const Text('Pesanan Ditahan (Hold)'),
+        title: const Text('Keranjang'),
       ),
       body: context.watch<TransactionProvider>().holdOrders.isEmpty
-          ? const Center(
+          ? Center(
               child: Text(
                 'Belum ada pesanan yang di-hold',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
+                style: TextStyle(color: context.colorTextSecondary, fontSize: 16),
               ),
             )
           : ListView.builder(
@@ -153,7 +153,7 @@ class _HoldOrderScreenState extends State<HoldOrderScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.delete_outline, color: AppColors.error),
+                          icon: Icon(Icons.delete_outline, color: context.colorError),
                           onPressed: () => _deleteHoldOrder(hold),
                         ),
                         const SizedBox(width: AppDimensions.spacingSM),
@@ -171,10 +171,6 @@ class _HoldOrderScreenState extends State<HoldOrderScreen> {
     );
   }
 }
-
-
-
-
 
 
 

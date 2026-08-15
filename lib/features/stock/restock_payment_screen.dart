@@ -15,6 +15,7 @@ import '../../data/providers/transaction_provider.dart';
 import '../../data/providers/discount_provider.dart';
 import '../../data/providers/fee_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class RestockPaymentScreen extends StatefulWidget {
   const RestockPaymentScreen({super.key});
@@ -124,7 +125,7 @@ class _RestockPaymentScreenState extends State<RestockPaymentScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('Batal', style: TextStyle(color: context.colorTextSecondary)),
           ),
           AppButton(
             label: 'Simpan',
@@ -369,17 +370,17 @@ class _RestockPaymentScreenState extends State<RestockPaymentScreen> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                               decoration: BoxDecoration(
-                                border: Border.all(color: AppColors.divider),
+                                border: Border.all(color: context.colorDivider),
                                 borderRadius: BorderRadius.circular(AppDimensions.radius),
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.business, color: AppColors.textSecondary, size: 20),
+                                  Icon(Icons.business, color: context.colorTextSecondary, size: 20),
                                   const SizedBox(width: AppDimensions.spacingSM),
                                   Expanded(
                                     child: Text(
                                       _cart.activeSupplier?.name ?? 'Pilih Supplier',
-                                      style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w500),
+                                      style: TextStyle(color: context.colorTextPrimary, fontWeight: FontWeight.w500),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -397,17 +398,17 @@ class _RestockPaymentScreenState extends State<RestockPaymentScreen> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                               decoration: BoxDecoration(
-                                border: Border.all(color: AppColors.divider),
+                                border: Border.all(color: context.colorDivider),
                                 borderRadius: BorderRadius.circular(AppDimensions.radius),
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.edit_note, color: AppColors.textSecondary, size: 20),
+                                  Icon(Icons.edit_note, color: context.colorTextSecondary, size: 20),
                                   const SizedBox(width: AppDimensions.spacingSM),
                                   Expanded(
                                     child: Text(
                                       _cart.activeNote ?? 'Keterangan',
-                                      style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w500),
+                                      style: TextStyle(color: context.colorTextPrimary, fontWeight: FontWeight.w500),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -419,16 +420,16 @@ class _RestockPaymentScreenState extends State<RestockPaymentScreen> {
                         ),
                       ],
                     ),
-                    const Divider(height: 32, thickness: 1, color: AppColors.divider),
+                    Divider(height: 32, thickness: 1, color: context.colorDivider),
                     
                     // Clean Total and Change info
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Total Pembelian', style: TextStyle(fontSize: 16, color: AppColors.textPrimary)),
+                        Text('Total Pembelian', style: TextStyle(fontSize: 16, color: context.colorTextPrimary)),
                         Text(
                           _currencyFormat.format(_totalToPay),
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: context.colorPrimary),
                         ),
                       ],
                     ),
@@ -437,7 +438,7 @@ class _RestockPaymentScreenState extends State<RestockPaymentScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Diskon', style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+                          Text('Diskon', style: TextStyle(fontSize: 14, color: context.colorTextSecondary)),
                           Text(
                             '- ${_currencyFormat.format(_discountAmount)}',
                             style: const TextStyle(fontSize: 14, color: Colors.green),
@@ -450,7 +451,7 @@ class _RestockPaymentScreenState extends State<RestockPaymentScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Biaya Tambahan', style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+                          Text('Biaya Tambahan', style: TextStyle(fontSize: 14, color: context.colorTextSecondary)),
                           Text(
                             '+ ${_currencyFormat.format(_feeAmount)}',
                             style: const TextStyle(fontSize: 14, color: Colors.red),
@@ -458,14 +459,14 @@ class _RestockPaymentScreenState extends State<RestockPaymentScreen> {
                         ],
                       ),
                     ],
-                    const Divider(height: 24, thickness: 1, color: AppColors.divider),
+                    Divider(height: 24, thickness: 1, color: context.colorDivider),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Kembalian', style: TextStyle(fontSize: 16, color: AppColors.textPrimary)),
+                        Text('Kembalian', style: TextStyle(fontSize: 16, color: context.colorTextPrimary)),
                         Text(
                           _change >= 0 ? _currencyFormat.format(_change) : 'Rp 0',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: context.colorTextPrimary),
                         ),
                       ],
                     ),
@@ -489,7 +490,7 @@ class _RestockPaymentScreenState extends State<RestockPaymentScreen> {
                                   height: 24,
                                   child: Checkbox(
                                     value: _isPiutang,
-                                    activeColor: AppColors.primary,
+                                    activeColor: context.colorPrimary,
                                     onChanged: (val) {
                                       setState(() {
                                         _isPiutang = val ?? false;
@@ -510,10 +511,10 @@ class _RestockPaymentScreenState extends State<RestockPaymentScreen> {
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(horizontal: 4),
                               minimumSize: const Size(0, 32),
-                              side: const BorderSide(color: AppColors.primary),
+                              side: BorderSide(color: context.colorPrimary),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                             ),
-                            child: const Text('+ Diskon', style: TextStyle(fontSize: 12, color: AppColors.primary)),
+                            child: Text('+ Diskon', style: TextStyle(fontSize: 12, color: context.colorPrimary)),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -524,10 +525,10 @@ class _RestockPaymentScreenState extends State<RestockPaymentScreen> {
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(horizontal: 4),
                               minimumSize: const Size(0, 32),
-                              side: const BorderSide(color: AppColors.primary),
+                              side: BorderSide(color: context.colorPrimary),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                             ),
-                            child: const Text('+ Biaya', style: TextStyle(fontSize: 12, color: AppColors.primary)),
+                            child: Text('+ Biaya', style: TextStyle(fontSize: 12, color: context.colorPrimary)),
                           ),
                         ),
                       ],
@@ -546,7 +547,7 @@ class _RestockPaymentScreenState extends State<RestockPaymentScreen> {
                               label: Text(
                                 method,
                                 style: TextStyle(
-                                  color: isSelected ? Colors.white : AppColors.textPrimary,
+                                  color: isSelected ? Colors.white : context.colorTextPrimary,
                                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                                 ),
                               ),
@@ -554,8 +555,8 @@ class _RestockPaymentScreenState extends State<RestockPaymentScreen> {
                               onSelected: (selected) {
                                 if (selected) setState(() => _paymentMethod = method);
                               },
-                              backgroundColor: AppColors.chipInactive,
-                              selectedColor: AppColors.primary,
+                              backgroundColor: context.colorChipInactive,
+                              selectedColor: context.colorPrimary,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radius)),
                               side: BorderSide.none,
                               showCheckmark: false,
@@ -572,13 +573,13 @@ class _RestockPaymentScreenState extends State<RestockPaymentScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                       decoration: BoxDecoration(
-                        color: AppColors.inputFill,
+                        color: context.colorInputFill,
                         borderRadius: BorderRadius.circular(AppDimensions.radius),
                       ),
                       alignment: Alignment.centerRight,
                       child: Text(
                         _payAmountStr.isEmpty ? 'Rp 0' : _currencyFormat.format(_payAmount),
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: context.colorTextPrimary),
                       ),
                     ),
                     const SizedBox(height: AppDimensions.spacingMD),
@@ -590,7 +591,7 @@ class _RestockPaymentScreenState extends State<RestockPaymentScreen> {
                             _buildNumpadButton('1'), const SizedBox(width: AppDimensions.spacingSM),
                             _buildNumpadButton('2'), const SizedBox(width: AppDimensions.spacingSM),
                             _buildNumpadButton('3'), const SizedBox(width: AppDimensions.spacingSM),
-                            _buildNumpadButton('C', color: AppColors.error),
+                            _buildNumpadButton('C', color: context.colorError),
                           ],
                         ),
                         const SizedBox(height: AppDimensions.spacingSM),
@@ -621,7 +622,7 @@ class _RestockPaymentScreenState extends State<RestockPaymentScreen> {
                                     children: [
                                       _buildNumpadButton('0'), const SizedBox(width: AppDimensions.spacingSM),
                                       _buildNumpadButton('000'), const SizedBox(width: AppDimensions.spacingSM),
-                                      _buildNumpadButton('AUTO', icon: Icons.payments_outlined, color: AppColors.primary),
+                                      _buildNumpadButton('AUTO', icon: Icons.payments_outlined, color: context.colorPrimary),
                                     ],
                                   ),
                                 ],
@@ -630,7 +631,7 @@ class _RestockPaymentScreenState extends State<RestockPaymentScreen> {
                             const SizedBox(width: AppDimensions.spacingSM),
                             Expanded(
                               flex: 1,
-                              child: _buildNumpadButton('PAS', color: Colors.white, bgColor: AppColors.primary, height: 116),
+                              child: _buildNumpadButton('PAS', color: Colors.white, bgColor: context.colorPrimary, height: 116),
                             ),
                           ],
                         ),
@@ -693,13 +694,13 @@ class _RestockPaymentScreenState extends State<RestockPaymentScreen> {
                   width: (MediaQuery.of(context).size.width - 48) / 3,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
-                    color: AppColors.chipInactive,
+                    color: context.colorChipInactive,
                     borderRadius: BorderRadius.circular(AppDimensions.radius),
                   ),
                   alignment: Alignment.center,
                   child: Text(
                     '+${_currencyFormat.format(amount).replaceAll('Rp', '').trim()}',
-                    style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                    style: TextStyle(fontWeight: FontWeight.w600, color: context.colorTextPrimary),
                   ),
                 ),
               )).toList(),
@@ -727,18 +728,18 @@ class _RestockPaymentScreenState extends State<RestockPaymentScreen> {
           height: height,
           decoration: BoxDecoration(
             color: bgColor ?? Colors.transparent,
-            border: Border.all(color: bgColor ?? AppColors.divider),
+            border: Border.all(color: bgColor ?? context.colorDivider),
             borderRadius: BorderRadius.circular(AppDimensions.radius),
           ),
           alignment: Alignment.center,
           child: icon != null
-              ? Icon(icon, color: color ?? AppColors.textPrimary, size: 28)
+              ? Icon(icon, color: color ?? context.colorTextPrimary, size: 28)
               : Text(
                   value,
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w600,
-                    color: color ?? AppColors.textPrimary,
+                    color: color ?? context.colorTextPrimary,
                   ),
                 ),
         ),

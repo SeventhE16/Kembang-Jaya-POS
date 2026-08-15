@@ -5,7 +5,6 @@ import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/material.dart';
 import '../../core/constants/app_dimensions.dart';
-import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_logo.dart';
@@ -19,6 +18,7 @@ import '../../core/services/printer_service.dart';
 import '../../core/services/settings_service.dart';
 import '../../data/providers/auth_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class ConfirmationScreen extends StatefulWidget {
   const ConfirmationScreen({super.key});
@@ -46,7 +46,8 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
     final cart = transaction?.items ?? [];
     final subtotal = transaction?.subtotal ?? 0;
     final discount = transaction?.extraDiscount ?? 0;
-    final fee = transaction?.extraFee ?? 0;
+    final fee = (transaction?.extraFee ?? 0) + (transaction?.fee?.value ?? 0);
+    final feeName = transaction?.fee?.name ?? 'Biaya';
     final total = transaction?.total ?? 0;
     // mock data for piutang if present
     final isCredit = transaction?.paymentMethod == 'Kasbon' && (transaction?.debtAmount ?? 0) > 0;
@@ -186,7 +187,7 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Biaya:\n', style: const TextStyle(fontSize: 13, color: Colors.black)),
+                Text(feeName, style: const TextStyle(fontSize: 13, color: Colors.black)),
                 Text(_currencyFormat.format(fee), style: const TextStyle(fontSize: 13, color: Colors.black)),
               ],
             ),
@@ -374,23 +375,23 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: AppColors.success.withValues(alpha: 0.1),
+                  color: context.colorSuccess.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.check_circle_rounded,
-                  color: AppColors.success,
+                  color: context.colorSuccess,
                   size: 80,
                 ),
               ),
               const SizedBox(height: AppDimensions.spacingLG),
-              const Text(
+              Text(
                 'Pembayaran Berhasil!',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: context.colorTextPrimary,
                 ),
               ),
               const SizedBox(height: AppDimensions.spacingSM),
@@ -399,7 +400,7 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
-                  color: AppColors.textSecondary,
+                  color: context.colorTextSecondary,
                 ),
               ),
               const Spacer(),
@@ -467,4 +468,3 @@ class _DashedDivider extends StatelessWidget {
     );
   }
 }
-

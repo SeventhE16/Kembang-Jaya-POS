@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 
 import '../constants/app_dimensions.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 enum SnackbarType { success, error, warning }
 
@@ -24,7 +25,7 @@ void showStatusSnackBar(
   
   switch (type) {
     case SnackbarType.success:
-      backgroundColor = AppColors.success;
+      backgroundColor = context.colorSuccess;
       iconData = Icons.check_circle;
       break;
     case SnackbarType.error:
@@ -32,7 +33,7 @@ void showStatusSnackBar(
       iconData = Icons.error;
       break;
     case SnackbarType.warning:
-      backgroundColor = AppColors.warning;
+      backgroundColor = context.colorWarning;
       iconData = Icons.warning;
       break;
   }
@@ -198,10 +199,10 @@ void showReceiptDialog(
             _dashedLine(),
             const SizedBox(height: AppDimensions.spacingMD),
 
-            const Text(
+            Text(
               'Terima kasih atas kunjungan Anda! Barang\nyang sudah dibeli tidak dapat\ndikembalikan.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.4),
+              style: TextStyle(fontSize: 11, color: context.colorTextSecondary, height: 1.4),
             ),
             const SizedBox(height: AppDimensions.spacingMD),
 
@@ -235,8 +236,8 @@ Widget _dashedLine() {
           return SizedBox(
             width: dashWidth,
             height: 1,
-            child: const DecoratedBox(
-              decoration: BoxDecoration(color: AppColors.textSecondary),
+            child: DecoratedBox(
+              decoration: BoxDecoration(color: context.colorTextSecondary),
             ),
           );
         }),
@@ -251,4 +252,3 @@ String _formatNum(int number) {
     (match) => '${match[1]}.',
   );
 }
-

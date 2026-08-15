@@ -10,6 +10,7 @@ import '../../data/providers/discount_provider.dart';
 import '../../data/models/discount_model.dart';
 import '../../core/widgets/status_dialog.dart';
 import 'add_discount_screen.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class DiscountScreen extends StatefulWidget {
   const DiscountScreen({super.key});
@@ -239,12 +240,12 @@ class _DiscountScreenState extends State<DiscountScreen> {
                               width: 48,
                               height: 48,
                               decoration: BoxDecoration(
-                                color: AppColors.iconLight,
+                                color: context.colorIconLight,
                                 borderRadius: BorderRadius.circular(AppDimensions.radius),
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.local_offer_outlined,
-                                color: AppColors.primary,
+                                color: context.colorPrimary,
                                 size: 24,
                               ),
                             ),
@@ -262,23 +263,23 @@ class _DiscountScreenState extends State<DiscountScreen> {
                                   ),
                                   Text(
                                     discount.displayValue,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 13,
-                                      color: AppColors.textSecondary,
+                                      color: context.colorTextSecondary,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.edit_outlined,
-                                  color: AppColors.primary, size: 20),
+                              icon: Icon(Icons.edit_outlined,
+                                  color: context.colorPrimary, size: 20),
                               onPressed: () => _showEditDiscountDialog(discount),
                               visualDensity: VisualDensity.compact,
                             ),
                             IconButton(
-                              icon: const Icon(Icons.delete_outline,
-                                  color: AppColors.primary, size: 20),
+                              icon: Icon(Icons.delete_outline,
+                                  color: context.colorPrimary, size: 20),
                               onPressed: () => _deleteDiscount(discount),
                               visualDensity: VisualDensity.compact,
                             ),
@@ -329,7 +330,7 @@ class _TypeRadio extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                color: isSelected ? context.colorPrimary : context.colorTextSecondary,
                 width: 2,
               ),
             ),
@@ -338,9 +339,9 @@ class _TypeRadio extends StatelessWidget {
                     child: Container(
                       width: 10,
                       height: 10,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppColors.primary,
+                        color: context.colorPrimary,
                       ),
                     ),
                   )
@@ -353,11 +354,6 @@ class _TypeRadio extends StatelessWidget {
     );
   }
 }
-
-
-
-
-
 
 
 

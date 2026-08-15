@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../data/models/transaction_model.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class StockOpnameDetailScreen extends StatelessWidget {
   const StockOpnameDetailScreen({super.key});
@@ -25,7 +26,7 @@ class StockOpnameDetailScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Tanggal', style: TextStyle(color: AppColors.textSecondary)),
+                    Text('Tanggal', style: TextStyle(color: context.colorTextSecondary)),
                     Text(DateFormat('dd MMMM yyyy, HH:mm', 'id').format(entry.date), style: const TextStyle(fontWeight: FontWeight.bold)),
                   ],
                 ),
@@ -33,7 +34,7 @@ class StockOpnameDetailScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Kasir', style: TextStyle(color: AppColors.textSecondary)),
+                    Text('Kasir', style: TextStyle(color: context.colorTextSecondary)),
                     Text(entry.cashierName, style: const TextStyle(fontWeight: FontWeight.bold)),
                   ],
                 ),
@@ -41,7 +42,7 @@ class StockOpnameDetailScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Total Barang', style: TextStyle(color: AppColors.textSecondary)),
+                    Text('Total Barang', style: TextStyle(color: context.colorTextSecondary)),
                     Text('${entry.totalItemsChanged} Barang Berubah', style: const TextStyle(fontWeight: FontWeight.bold)),
                   ],
                 ),
@@ -51,7 +52,7 @@ class StockOpnameDetailScreen extends StatelessWidget {
           const SizedBox(height: 8),
           Expanded(
             child: entry.items.isEmpty
-                ? const Center(child: Text('Tidak ada rincian barang', style: TextStyle(color: AppColors.textSecondary)))
+                ? Center(child: Text('Tidak ada rincian barang', style: TextStyle(color: context.colorTextSecondary)))
                 : ListView.builder(
                     padding: const EdgeInsets.all(16),
                     itemCount: entry.items.length,
@@ -79,29 +80,29 @@ class StockOpnameDetailScreen extends StatelessWidget {
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text('Stok Sistem', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                                    Text('Stok Sistem', style: TextStyle(fontSize: 11, color: context.colorTextSecondary)),
                                     Text('${item.oldStock}', style: const TextStyle(fontWeight: FontWeight.bold)),
                                   ],
                                 ),
-                                const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textSecondary),
+                                Icon(Icons.arrow_forward_ios, size: 14, color: context.colorTextSecondary),
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text('Fisik/Baru', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                                    Text('Fisik/Baru', style: TextStyle(fontSize: 11, color: context.colorTextSecondary)),
                                     Text('${item.newStock}', style: const TextStyle(fontWeight: FontWeight.bold)),
                                   ],
                                 ),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: isIncrease ? AppColors.success.withValues(alpha: 0.1) : AppColors.error.withValues(alpha: 0.1),
+                                    color: isIncrease ? context.colorSuccess.withValues(alpha: 0.1) : context.colorError.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
                                     isIncrease ? '+$diff' : '$diff',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: isIncrease ? AppColors.success : AppColors.error,
+                                      color: isIncrease ? context.colorSuccess : context.colorError,
                                       fontSize: 13,
                                     ),
                                   ),

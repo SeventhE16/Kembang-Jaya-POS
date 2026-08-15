@@ -3,6 +3,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/widgets/app_drawer.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class DebtReceivableMenuScreen extends StatelessWidget {
   const DebtReceivableMenuScreen({super.key});
@@ -31,7 +32,7 @@ class DebtReceivableMenuScreen extends StatelessWidget {
                 title: 'Piutang',
                 subtitle: 'Kelola tagihan pelanggan',
                 icon: Icons.account_balance_wallet_outlined,
-                color: AppColors.primary,
+                color: context.colorPrimary,
                 route: '/piutang_pelanggan',
               ),
               const SizedBox(height: AppDimensions.spacingLG),
@@ -40,7 +41,7 @@ class DebtReceivableMenuScreen extends StatelessWidget {
                 title: 'Hutang',
                 subtitle: 'Kelola hutang ke supplier',
                 icon: Icons.store_mall_directory_outlined,
-                color: AppColors.error,
+                color: context.colorError,
                 route: '/hutang_supplier',
               ),
             ],
@@ -71,7 +72,7 @@ class DebtReceivableMenuScreen extends StatelessWidget {
           padding: const EdgeInsets.all(AppDimensions.spacingLG),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppDimensions.radius),
-            border: Border.all(color: AppColors.divider, width: 0.5),
+            border: Border.all(color: context.colorDivider, width: 0.5),
           ),
           child: Row(
             children: [
@@ -95,12 +96,12 @@ class DebtReceivableMenuScreen extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       subtitle,
-                      style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                      style: TextStyle(fontSize: 14, color: context.colorTextSecondary),
                     ),
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 28),
+              Icon(Icons.chevron_right, color: context.colorTextSecondary, size: 28),
             ],
           ),
         ),

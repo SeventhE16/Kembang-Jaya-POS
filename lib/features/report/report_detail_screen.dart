@@ -9,6 +9,7 @@ import '../../data/models/transaction_model.dart';
 import '../../data/providers/transaction_provider.dart';
 import '../../data/providers/product_provider.dart';
 import '../../data/providers/audit_provider.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class ReportDetailScreen extends StatelessWidget {
   const ReportDetailScreen({super.key});
@@ -62,7 +63,7 @@ class ReportDetailScreen extends StatelessWidget {
             margin: const EdgeInsets.all(AppDimensions.spacingMD),
             padding: const EdgeInsets.symmetric(vertical: AppDimensions.spacingMD, horizontal: AppDimensions.spacingSM),
             decoration: BoxDecoration(
-              color: AppColors.primary,
+              color: context.colorPrimary,
               borderRadius: BorderRadius.circular(AppDimensions.radius),
             ),
             child: IntrinsicHeight(
@@ -109,7 +110,7 @@ class ReportDetailScreen extends StatelessWidget {
                           children: [
                             Text(
                               DateFormat('HH:mm:ss').format(tx.date),
-                              style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                              style: TextStyle(fontSize: 10, color: context.colorTextSecondary),
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -119,7 +120,7 @@ class ReportDetailScreen extends StatelessWidget {
                             Text(
                               DateFormat('MMM\nyyyy').format(tx.date),
                               textAlign: TextAlign.center,
-                              style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                              style: TextStyle(fontSize: 10, color: context.colorTextSecondary),
                             ),
                           ],
                         ),
@@ -135,7 +136,7 @@ class ReportDetailScreen extends StatelessWidget {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(tx.type == 'purchase' ? 'Pengeluaran' : 'Pendapatan', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                                Text(tx.type == 'purchase' ? 'Pengeluaran' : 'Pendapatan', style: TextStyle(fontSize: 12, color: context.colorTextSecondary)),
                                 Text(currencyFormat.format(tx.total), style: const TextStyle(fontWeight: FontWeight.bold)),
                               ],
                             ),
@@ -144,17 +145,17 @@ class ReportDetailScreen extends StatelessWidget {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Text('Keuntungan', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                                  Text(currencyFormat.format(keuntungan), style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.success)),
+                                  Text('Keuntungan', style: TextStyle(fontSize: 12, color: context.colorTextSecondary)),
+                                  Text(currencyFormat.format(keuntungan), style: TextStyle(fontWeight: FontWeight.bold, color: context.colorSuccess)),
                                 ],
                               ),
                             ],
                             const SizedBox(height: 8),
                             Row(
                               children: [
-                                Expanded(child: Text('No : ${tx.id}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+                                Expanded(child: Text('No : ${tx.id}', style: TextStyle(fontSize: 12, color: context.colorTextSecondary))),
                                 IconButton(
-                                  icon: const Icon(Icons.copy, size: 16, color: AppColors.textSecondary),
+                                  icon: Icon(Icons.copy, size: 16, color: context.colorTextSecondary),
                                   padding: EdgeInsets.zero,
                                   constraints: const BoxConstraints(),
                                   onPressed: () {
@@ -173,8 +174,8 @@ class ReportDetailScreen extends StatelessWidget {
                                 padding: const EdgeInsets.only(top: 4),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(color: AppColors.error.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
-                                  child: const Text('Kasbon - Belum Lunas', style: TextStyle(fontSize: 10, color: AppColors.error, fontWeight: FontWeight.bold)),
+                                  decoration: BoxDecoration(color: context.colorError.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
+                                  child: Text('Kasbon - Belum Lunas', style: TextStyle(fontSize: 10, color: context.colorError, fontWeight: FontWeight.bold)),
                                 ),
                               ),
                           ],
@@ -185,7 +186,7 @@ class ReportDetailScreen extends StatelessWidget {
                       Column(
                         children: [
                           IconButton(
-                            icon: const Icon(Icons.close, color: AppColors.error),
+                            icon: Icon(Icons.close, color: context.colorError),
                             onPressed: () {
                               showDialog(
                                 context: context,
@@ -222,7 +223,7 @@ class ReportDetailScreen extends StatelessWidget {
                                           showStatusSnackBar(context, message: 'Gagal menghapus', type: SnackbarType.error);
                                         }
                                       },
-                                      child: const Text('Hapus', style: TextStyle(color: AppColors.error)),
+                                      child: Text('Hapus', style: TextStyle(color: context.colorError)),
                                     ),
                                   ],
                                 ),
@@ -230,7 +231,7 @@ class ReportDetailScreen extends StatelessWidget {
                             },
                           ),
                           IconButton(
-                            icon: const Icon(Icons.arrow_forward, color: AppColors.primary),
+                            icon: Icon(Icons.arrow_forward, color: context.colorPrimary),
                             onPressed: () {
                               Navigator.pushNamed(context, '/struk', arguments: tx);
                             },

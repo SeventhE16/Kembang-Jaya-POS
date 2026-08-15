@@ -55,6 +55,7 @@ class StockBatch {
 
 class Product {
   final String id;
+  final String code;
   final String name;
   final String category;
   final String unit;
@@ -71,6 +72,7 @@ class Product {
 
   Product({
     required this.id,
+    this.code = '-',
     required this.name,
     required this.category,
     required this.unit,
@@ -89,6 +91,7 @@ class Product {
   factory Product.fromJson(Map<String, dynamic> json, String id) {
     return Product(
       id: id,
+      code: json['code'] ?? '-',
       name: json['name'] ?? '',
       category: json['category'] ?? '',
       unit: json['unit'] ?? '',
@@ -113,6 +116,7 @@ class Product {
 
   Map<String, dynamic> toJson() {
     return {
+      'code': code,
       'name': name,
       'category': category,
       'unit': unit,
@@ -131,6 +135,7 @@ class Product {
 
   Product copyWith({
     String? id,
+    String? code,
     String? name,
     String? category,
     String? unit,
@@ -147,6 +152,7 @@ class Product {
   }) {
     return Product(
       id: id ?? this.id,
+      code: code ?? this.code,
       name: name ?? this.name,
       category: category ?? this.category,
       unit: unit ?? this.unit,

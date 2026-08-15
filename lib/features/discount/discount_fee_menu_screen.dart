@@ -3,6 +3,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/widgets/app_drawer.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class DiscountFeeMenuScreen extends StatelessWidget {
   const DiscountFeeMenuScreen({super.key});
@@ -31,7 +32,7 @@ class DiscountFeeMenuScreen extends StatelessWidget {
                 title: 'Diskon',
                 subtitle: 'Kelola diskon nominal & persen',
                 icon: Icons.percent,
-                color: AppColors.primary,
+                color: context.colorPrimary,
                 route: AppRoutes.discount,
               ),
               const SizedBox(height: AppDimensions.spacingLG),
@@ -71,7 +72,7 @@ class DiscountFeeMenuScreen extends StatelessWidget {
           padding: const EdgeInsets.all(AppDimensions.spacingLG),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppDimensions.radius),
-            border: Border.all(color: AppColors.divider, width: 0.5),
+            border: Border.all(color: context.colorDivider, width: 0.5),
           ),
           child: Row(
             children: [
@@ -95,12 +96,12 @@ class DiscountFeeMenuScreen extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       subtitle,
-                      style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                      style: TextStyle(fontSize: 14, color: context.colorTextSecondary),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: AppColors.textHint, size: 32),
+              Icon(Icons.chevron_right, color: context.colorTextHint, size: 32),
             ],
           ),
         ),
@@ -108,7 +109,5 @@ class DiscountFeeMenuScreen extends StatelessWidget {
     );
   }
 }
-
-
 
 

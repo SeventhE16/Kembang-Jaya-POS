@@ -12,6 +12,7 @@ import '../../data/providers/restock_cart_provider.dart';
 import '../../data/providers/product_provider.dart';
 
 import 'package:intl/intl.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class RestockCartScreen extends StatefulWidget {
   const RestockCartScreen({super.key});
@@ -80,7 +81,7 @@ class _RestockCartScreenState extends State<RestockCartScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('Batal', style: TextStyle(color: context.colorTextSecondary)),
           ),
           AppButton(
             label: 'Simpan',
@@ -147,13 +148,13 @@ class _RestockCartScreenState extends State<RestockCartScreen> {
                 hint: 'Harga Jual (Rp)',
               ),
               const SizedBox(height: 8),
-              const Text('Perubahan akan disimpan permanen', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              Text('Perubahan akan disimpan permanen', style: TextStyle(fontSize: 12, color: context.colorTextSecondary)),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Batal', style: TextStyle(color: AppColors.textSecondary)),
+              child: Text('Batal', style: TextStyle(color: context.colorTextSecondary)),
             ),
             AppButton(
               label: 'Simpan',
@@ -204,7 +205,7 @@ class _RestockCartScreenState extends State<RestockCartScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('Batal', style: TextStyle(color: context.colorTextSecondary)),
           ),
           AppButton(
             label: 'Simpan',
@@ -264,7 +265,7 @@ class _RestockCartScreenState extends State<RestockCartScreen> {
                                     const SizedBox(height: 4),
                                     Text(
                                       _currencyFormat.format(item.unitPrice),
-                                      style: const TextStyle(fontSize: 14, color: AppColors.primary, fontWeight: FontWeight.w500),
+                                      style: TextStyle(fontSize: 14, color: context.colorPrimary, fontWeight: FontWeight.w500),
                                     ),
                                   ],
                                 ),
@@ -302,12 +303,12 @@ class _RestockCartScreenState extends State<RestockCartScreen> {
                             if (item.itemDiscount > 0)
                               Text(
                                 'Diskon: -${_currencyFormat.format(item.itemDiscount)}',
-                                style: const TextStyle(fontSize: 13, color: AppColors.warning),
+                                style: TextStyle(fontSize: 13, color: context.colorWarning),
                               ),
                             if (item.note != null)
                               Text(
                                 'Catatan: ${item.note}',
-                                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontStyle: FontStyle.italic),
+                                style: TextStyle(fontSize: 13, color: context.colorTextSecondary, fontStyle: FontStyle.italic),
                               ),
                           ],
                           const SizedBox(height: AppDimensions.spacingMD),
@@ -329,7 +330,7 @@ class _RestockCartScreenState extends State<RestockCartScreen> {
                               // Qty controls
                               Container(
                                 decoration: BoxDecoration(
-                                  color: AppColors.inputFill,
+                                  color: context.colorInputFill,
                                   borderRadius: BorderRadius.circular(AppDimensions.radius),
                                 ),
                                 child: Row(
@@ -346,7 +347,7 @@ class _RestockCartScreenState extends State<RestockCartScreen> {
                                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                         child: Text(
                                           '${item.quantity}',
-                                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.primary),
+                                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: context.colorPrimary),
                                         ),
                                       ),
                                     ),
@@ -396,16 +397,16 @@ class _RestockCartScreenState extends State<RestockCartScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
-                            border: Border.all(color: AppColors.primary),
+                            border: Border.all(color: context.colorPrimary),
                             borderRadius: BorderRadius.circular(AppDimensions.radius),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.business, color: AppColors.primary, size: 20),
+                              Icon(Icons.business, color: context.colorPrimary, size: 20),
                               const SizedBox(width: AppDimensions.spacingSM),
                               Text(
                                 _cart.activeSupplier?.name ?? 'Pilih Supplier',
-                                style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600),
+                                style: TextStyle(color: context.colorPrimary, fontWeight: FontWeight.w600),
                               ),
                             ],
                           ),
@@ -439,12 +440,12 @@ class _RestockCartScreenState extends State<RestockCartScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          color: AppColors.chipInactive,
+          color: context.colorChipInactive,
           borderRadius: BorderRadius.circular(AppDimensions.radius),
         ),
         child: Text(
           label,
-          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+          style: TextStyle(fontSize: 12, color: context.colorTextSecondary, fontWeight: FontWeight.w500),
         ),
       ),
     );

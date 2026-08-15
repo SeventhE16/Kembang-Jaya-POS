@@ -16,6 +16,7 @@ import '../../data/providers/transaction_provider.dart';
 import '../../data/providers/customer_provider.dart';
 import '../../data/providers/auth_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class PiutangScreen extends StatefulWidget {
   const PiutangScreen({super.key});
@@ -163,19 +164,19 @@ class _PiutangScreenState extends State<PiutangScreen> {
                                 if (customer != null && customer.phone.isNotEmpty)
                                   Text(
                                     'HP: ${customer.phone}',
-                                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                    style: TextStyle(fontSize: 12, color: context.colorTextSecondary),
                                   ),
                               ],
                             ),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: AppColors.error.withValues(alpha: 0.1),
+                                color: context.colorError.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
                                 'Belum Lunas',
-                                style: const TextStyle(fontSize: 11, color: AppColors.error, fontWeight: FontWeight.bold),
+                                style: TextStyle(fontSize: 11, color: context.colorError, fontWeight: FontWeight.bold),
                               ),
                             ),
                           ],
@@ -183,18 +184,18 @@ class _PiutangScreenState extends State<PiutangScreen> {
                         const SizedBox(height: AppDimensions.spacingSM),
                         Text(
                           'Sisa Hutang: ${currencyFormat.format(tx.debtAmount)}',
-                          style: const TextStyle(fontSize: 16, color: AppColors.error, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: 16, color: context.colorError, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'Total Transaksi: ${currencyFormat.format(tx.total)}',
-                          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                          style: TextStyle(fontSize: 13, color: context.colorTextSecondary),
                         ),
                         const SizedBox(height: 4),
                         const SizedBox(height: 4),
                         Text(
                           'Tgl: ${DateFormat('dd MMM yyyy HH:mm').format(tx.date)} • ID: ${tx.invoiceNumber ?? tx.id}',
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: TextStyle(fontSize: 12, color: context.colorTextSecondary),
                         ),
                         const SizedBox(height: 12),
                         ExpansionTile(
@@ -218,9 +219,9 @@ class _PiutangScreenState extends State<PiutangScreen> {
                                   );
                                 }
                                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                                  return const Padding(
+                                  return Padding(
                                     padding: EdgeInsets.all(8.0),
-                                    child: Text('Belum ada riwayat cicilan', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                                    child: Text('Belum ada riwayat cicilan', style: TextStyle(color: context.colorTextSecondary, fontSize: 12)),
                                   );
                                 }
                                 return Column(
@@ -263,7 +264,7 @@ class _PiutangScreenState extends State<PiutangScreen> {
                                 icon: const Icon(Icons.payment, size: 16),
                                 label: const Text('Bayar Cicilan'),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.success,
+                                  backgroundColor: context.colorSuccess,
                                   foregroundColor: Colors.white,
                                 ),
                                 onPressed: () => _payCicilan(tx),
@@ -280,10 +281,4 @@ class _PiutangScreenState extends State<PiutangScreen> {
     );
   }
 }
-
-
-
-
-
-
 

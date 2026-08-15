@@ -8,6 +8,7 @@ import '../../core/widgets/app_text_field.dart';
 import '../../core/widgets/status_dialog.dart';
 import 'package:provider/provider.dart';
 import '../../data/providers/auth_provider.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -79,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) Navigator.pushReplacementNamed(context, AppRoutes.sync);
       });
-      return const Scaffold(body: Center(child: CircularProgressIndicator(color: AppColors.primary)));
+      return Scaffold(body: Center(child: CircularProgressIndicator(color: context.colorPrimary)));
     }
 
     if (auth.isLoadingUser) {
@@ -87,16 +88,16 @@ class _LoginScreenState extends State<LoginScreen> {
         body: Container(
           width: double.infinity,
           height: double.infinity,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [AppColors.primarySurface, Colors.white],
+              colors: [context.colorPrimarySurface, Colors.white],
               stops: [0.0, 0.5],
             ),
           ),
-          child: const Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
+          child: Center(
+            child: CircularProgressIndicator(color: context.colorPrimary),
           ),
         ),
       );
@@ -106,12 +107,12 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppColors.primarySurface,
+              context.colorPrimarySurface,
               Colors.white,
             ],
             stops: [0.0, 0.5],
@@ -133,24 +134,24 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: AppDimensions.spacingLG),
 
                 // Store name
-                const Text(
+                Text(
                   'Depot Kayu\nKembang Jaya',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary,
+                    color: context.colorTextPrimary,
                     height: 1.2,
                   ),
                 ),
                 const SizedBox(height: AppDimensions.spacingSM),
 
                 // Subtitle
-                const Text(
+                Text(
                   'Kelola stok dan transaksi toko',
                   style: TextStyle(
                     fontSize: 15,
-                    color: AppColors.primary,
+                    color: context.colorPrimary,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -194,10 +195,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           onPressed: () {
                             Navigator.pushNamed(context, AppRoutes.forgotPassword);
                           },
-                          child: const Text(
+                          child: Text(
                             'Lupa Password?',
                             style: TextStyle(
-                              color: AppColors.primary,
+                              color: context.colorPrimary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -215,18 +216,18 @@ class _LoginScreenState extends State<LoginScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(
+                          Text(
                             'Belum punya akun?',
-                            style: TextStyle(color: AppColors.textSecondary),
+                            style: TextStyle(color: context.colorTextSecondary),
                           ),
                           TextButton(
                             onPressed: () {
                               Navigator.pushNamed(context, AppRoutes.register);
                             },
-                            child: const Text(
+                            child: Text(
                               'Buat Akun',
                               style: TextStyle(
-                                color: AppColors.primary,
+                                color: context.colorPrimary,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -245,7 +246,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-
-
-
-

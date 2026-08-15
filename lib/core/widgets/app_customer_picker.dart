@@ -6,6 +6,7 @@ import '../constants/app_colors.dart';
 import '../constants/app_dimensions.dart';
 import 'app_button.dart';
 import 'app_text_field.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class AppCustomerPicker extends StatefulWidget {
   final Customer? selectedCustomer;
@@ -61,7 +62,7 @@ class _AppCustomerPickerState extends State<AppCustomerPicker> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('Batal', style: TextStyle(color: context.colorTextSecondary)),
           ),
           AppButton(
             label: 'Simpan',
@@ -116,7 +117,7 @@ class _AppCustomerPickerState extends State<AppCustomerPicker> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('Batal', style: TextStyle(color: context.colorTextSecondary)),
           ),
           AppButton(
             label: 'Simpan',
@@ -178,11 +179,11 @@ class _AppCustomerPickerState extends State<AppCustomerPicker> {
             ),
             const SizedBox(height: AppDimensions.spacingSM),
             ListTile(
-              leading: const CircleAvatar(
-                backgroundColor: AppColors.primary,
+              leading: CircleAvatar(
+                backgroundColor: context.colorPrimary,
                 child: Icon(Icons.add, color: Colors.white),
               ),
-              title: const Text('Tambah Pelanggan Baru', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+              title: Text('Tambah Pelanggan Baru', style: TextStyle(color: context.colorPrimary, fontWeight: FontWeight.bold)),
               onTap: _addNewCustomer,
             ),
             const Divider(),
@@ -195,11 +196,11 @@ class _AppCustomerPickerState extends State<AppCustomerPicker> {
                   final isSelected = widget.selectedCustomer?.id == cust.id;
                   
                   return ListTile(
-                    leading: isSelected ? const Icon(Icons.check_circle, color: AppColors.primary) : const CircleAvatar(backgroundColor: Colors.black12, child: Icon(Icons.person, color: Colors.white)),
+                    leading: isSelected ? Icon(Icons.check_circle, color: context.colorPrimary) : CircleAvatar(backgroundColor: Colors.black12, child: Icon(Icons.person, color: Colors.white)),
                     title: Text(cust.name, style: Theme.of(context).textTheme.bodyLarge),
                     subtitle: Text(cust.phone, style: Theme.of(context).textTheme.bodySmall),
                     trailing: IconButton(
-                      icon: const Icon(Icons.edit, color: AppColors.textSecondary, size: 20),
+                      icon: Icon(Icons.edit, color: context.colorTextSecondary, size: 20),
                       onPressed: () => _editCustomer(cust),
                     ),
                     onTap: () => Navigator.pop(context, cust),

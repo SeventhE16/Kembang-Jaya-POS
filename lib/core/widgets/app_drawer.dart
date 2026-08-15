@@ -6,6 +6,7 @@ import '../constants/app_routes.dart';
 import 'package:provider/provider.dart';
 import '../../data/providers/auth_provider.dart';
 import '../../data/providers/cart_provider.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class AppDrawer extends StatelessWidget {
   final String currentRoute;
@@ -48,9 +49,9 @@ class AppDrawer extends StatelessWidget {
                           final user = authProvider.user;
                           return Text(
                             user?.displayName ?? 'Staff',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
-                              color: AppColors.textSecondary,
+                              color: context.colorTextSecondary,
                             ),
                           );
                         },
@@ -87,8 +88,8 @@ class AppDrawer extends StatelessWidget {
                       ),
                     if (userModel?.hasAccess('holdOrders') ?? true)
                       _DrawerItem(
-                        icon: Icons.pause_circle_outline,
-                        label: 'Pesanan Tertunda',
+                        icon: Icons.shopping_basket_outlined,
+                        label: 'Keranjang',
                         route: AppRoutes.holdOrders,
                         isSelected: currentRoute == AppRoutes.holdOrders,
                         onTap: () => _navigateTo(context, AppRoutes.holdOrders),
@@ -213,15 +214,15 @@ class _DrawerItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = isLogout
-        ? AppColors.primary
+        ? context.colorPrimary
         : isSelected
-        ? AppColors.primary
-        : Theme.of(context).textTheme.bodyLarge?.color ?? AppColors.textPrimary;
+        ? context.colorPrimary
+        : Theme.of(context).textTheme.bodyLarge?.color ?? context.colorTextPrimary;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: isSelected ? AppColors.primaryLight : Colors.transparent,
+        color: isSelected ? context.colorPrimaryLight : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListTile(
@@ -242,7 +243,6 @@ class _DrawerItem extends StatelessWidget {
     );
   }
 }
-
 
 
 

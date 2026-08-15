@@ -9,6 +9,7 @@ import '../../data/models/mutation_model.dart';
 import '../../data/providers/product_provider.dart';
 import '../../data/providers/mutation_provider.dart';
 import '../../data/providers/auth_provider.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class MutationScreen extends StatefulWidget {
   const MutationScreen({super.key});
@@ -56,7 +57,7 @@ class _MutationScreenState extends State<MutationScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Ya, Pindahkan', style: TextStyle(color: AppColors.primary)),
+            child: Text('Ya, Pindahkan', style: TextStyle(color: context.colorPrimary)),
           ),
         ],
       ),
@@ -161,7 +162,7 @@ class _MutationScreenState extends State<MutationScreen> {
                   if (_sourceProduct != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 8),
-                      child: Text('Sisa Stok: ${_sourceProduct!.stock}', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                      child: Text('Sisa Stok: ${_sourceProduct!.stock}', style: TextStyle(color: context.colorPrimary, fontWeight: FontWeight.bold)),
                     ),
                   const SizedBox(height: 20),
 

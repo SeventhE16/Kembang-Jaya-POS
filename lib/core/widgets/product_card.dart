@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../data/models/product_model.dart';
 import '../constants/app_colors.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -31,9 +32,9 @@ class ProductCard extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: AppColors.divider, width: 0.5),
+          bottom: BorderSide(color: context.colorDivider, width: 0.5),
         ),
       ),
       child: Row(
@@ -43,12 +44,12 @@ class ProductCard extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppColors.iconLight,
+              color: context.colorIconLight,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
               Icons.inventory_2_outlined,
-              color: AppColors.primary,
+              color: context.colorPrimary,
               size: 24,
             ),
           ),
@@ -76,9 +77,9 @@ class ProductCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   'Rp ${_formatNumber((showBasePrice ? product.basePrice : product.sellPrice).toInt())} · Stok ${product.stock}${showEditDelete ? ' ${product.unit}' : ''}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: AppColors.textSecondary,
+                    color: context.colorTextSecondary,
                   ),
                 ),
               ],
@@ -88,12 +89,12 @@ class ProductCard extends StatelessWidget {
           // Action buttons
           if (showEditDelete) ...[
             IconButton(
-              icon: const Icon(Icons.edit_outlined, color: AppColors.primary, size: 20),
+              icon: Icon(Icons.edit_outlined, color: context.colorPrimary, size: 20),
               onPressed: onEdit,
               visualDensity: VisualDensity.compact,
             ),
             IconButton(
-              icon: const Icon(Icons.delete_outline, color: AppColors.primary, size: 20),
+              icon: Icon(Icons.delete_outline, color: context.colorPrimary, size: 20),
               onPressed: onDelete,
               visualDensity: VisualDensity.compact,
             ),
@@ -103,10 +104,10 @@ class ProductCard extends StatelessWidget {
                 padding: const EdgeInsets.only(right: 4),
                 child: Text(
                   '${cartQuantity}x',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.primary,
+                    color: context.colorPrimary,
                   ),
                 ),
               ),
@@ -115,7 +116,7 @@ class ProductCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: AppColors.stockEmpty,
+                  color: context.colorStockEmpty,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Text(
@@ -132,7 +133,7 @@ class ProductCard extends StatelessWidget {
                 width: 40,
                 height: 40,
                 child: Material(
-                  color: AppColors.primary,
+                  color: context.colorPrimary,
                   borderRadius: BorderRadius.circular(10),
                   child: InkWell(
                     onTap: onAdd,
@@ -158,4 +159,3 @@ class ProductCard extends StatelessWidget {
     );
   }
 }
-

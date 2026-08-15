@@ -3,6 +3,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../constants/app_colors.dart';
 import '../widgets/app_button.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class OfflineIndicator extends StatefulWidget {
   final Widget child;
@@ -68,9 +69,9 @@ class _OfflineIndicatorState extends State<OfflineIndicator> {
           _isSyncing = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('Sinkronisasi data berhasil.'),
-            backgroundColor: AppColors.success,
+            backgroundColor: context.colorSuccess,
           ),
         );
       }
@@ -78,9 +79,9 @@ class _OfflineIndicatorState extends State<OfflineIndicator> {
       if (mounted) {
         setState(() => _isSyncing = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('Gagal sinkronisasi, coba lagi.'),
-            backgroundColor: AppColors.error,
+            backgroundColor: context.colorError,
           ),
         );
       }
@@ -96,7 +97,7 @@ class _OfflineIndicatorState extends State<OfflineIndicator> {
             if (_isOffline)
               Container(
                 width: double.infinity,
-                color: AppColors.error,
+                color: context.colorError,
                 padding: EdgeInsets.only(
                   top: MediaQuery.of(context).padding.top,
                   bottom: 4,
@@ -130,17 +131,17 @@ class _OfflineIndicatorState extends State<OfflineIndicator> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.cloud_upload_outlined, size: 64, color: AppColors.primary),
+                      Icon(Icons.cloud_upload_outlined, size: 64, color: context.colorPrimary),
                       const SizedBox(height: 16),
                       const Text(
                         'Koneksi Terhubung',
                         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
+                      Text(
                         'Anda memiliki data transaksi lokal yang belum diunggah ke server. Harap upload data sekarang untuk melanjutkan.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: AppColors.textSecondary),
+                        style: TextStyle(color: context.colorTextSecondary),
                       ),
                       const SizedBox(height: 24),
                       SizedBox(

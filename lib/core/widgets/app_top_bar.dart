@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -23,7 +24,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       leading: showBackButton
           ? IconButton(
-              icon: const Icon(Icons.chevron_left, color: AppColors.primary, size: 28),
+              icon: Icon(Icons.chevron_left, color: context.colorPrimary, size: 28),
               onPressed: () => Navigator.of(context).pop(),
             )
           : showDrawerToggle

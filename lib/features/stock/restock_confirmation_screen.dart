@@ -17,6 +17,7 @@ import '../../core/services/printer_service.dart';
 import '../../core/services/settings_service.dart';
 import '../../data/providers/auth_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class RestockConfirmationScreen extends StatefulWidget {
   const RestockConfirmationScreen({super.key});
@@ -335,23 +336,23 @@ class _RestockConfirmationScreenState extends State<RestockConfirmationScreen> {
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: AppColors.success.withValues(alpha: 0.1),
+                  color: context.colorSuccess.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.check_circle_rounded,
-                  color: AppColors.success,
+                  color: context.colorSuccess,
                   size: 80,
                 ),
               ),
               const SizedBox(height: AppDimensions.spacingLG),
-              const Text(
+              Text(
                 'Pembelian Berhasil!',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: context.colorTextPrimary,
                 ),
               ),
               const SizedBox(height: AppDimensions.spacingSM),
@@ -360,7 +361,7 @@ class _RestockConfirmationScreenState extends State<RestockConfirmationScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
-                  color: AppColors.textSecondary,
+                  color: context.colorTextSecondary,
                 ),
               ),
               const Spacer(),

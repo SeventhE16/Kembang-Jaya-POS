@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../../data/models/transaction_model.dart';
 import '../../data/providers/transaction_provider.dart';
 import '../../data/providers/mutation_provider.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class ReportScreen extends StatefulWidget {
   const ReportScreen({super.key});
@@ -169,7 +170,7 @@ class _ReportScreenState extends State<ReportScreen> {
       body: Consumer<TransactionProvider>(
         builder: (context, provider, _) {
           if (provider.isLoading) {
-            return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+            return Center(child: CircularProgressIndicator(color: context.colorPrimary));
           }
 
           return Column(
@@ -227,7 +228,7 @@ class _ReportScreenState extends State<ReportScreen> {
 
   Widget _buildStockOpnameReport(TransactionProvider provider) {
     if (provider.isLoading) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+      return Center(child: CircularProgressIndicator(color: context.colorPrimary));
     }
 
     final opnames = provider.stockOpnames;
@@ -296,17 +297,17 @@ class _ReportScreenState extends State<ReportScreen> {
                     children: [
                       Text(DateFormat('dd MMM yyyy, HH:mm', 'id').format(opname.date), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                       const SizedBox(height: 4),
-                      Text('Oleh: ${opname.cashierName}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                      Text('Oleh: ${opname.cashierName}', style: TextStyle(fontSize: 12, color: context.colorTextSecondary)),
                     ],
                   ),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
-                  child: Text('${opname.totalItemsChanged} Barang', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 13)),
+                  decoration: BoxDecoration(color: context.colorPrimary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
+                  child: Text('${opname.totalItemsChanged} Barang', style: TextStyle(fontWeight: FontWeight.bold, color: context.colorPrimary, fontSize: 13)),
                 ),
                 const SizedBox(width: 8),
-                const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textSecondary),
+                Icon(Icons.arrow_forward_ios, size: 14, color: context.colorTextSecondary),
               ],
             ),
           ),
@@ -319,7 +320,7 @@ class _ReportScreenState extends State<ReportScreen> {
     return Consumer<MutationProvider>(
       builder: (context, provider, _) {
         if (provider.isLoading) {
-          return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+          return Center(child: CircularProgressIndicator(color: context.colorPrimary));
         }
 
         final mutations = provider.mutations;
@@ -352,8 +353,8 @@ class _ReportScreenState extends State<ReportScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(DateFormat('dd MMM yyyy, HH:mm', 'id').format(mut.date), style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                      Text(mut.createdBy ?? 'Staff', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                      Text(DateFormat('dd MMM yyyy, HH:mm', 'id').format(mut.date), style: TextStyle(fontSize: 12, color: context.colorTextSecondary)),
+                      Text(mut.createdBy ?? 'Staff', style: TextStyle(fontSize: 12, color: context.colorTextSecondary)),
                     ],
                   ),
                   const Divider(),
@@ -363,20 +364,20 @@ class _ReportScreenState extends State<ReportScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Asal', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                            Text('Asal', style: TextStyle(fontSize: 11, color: context.colorTextSecondary)),
                             Text(mut.sourceProductName, style: const TextStyle(fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ),
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.symmetric(horizontal: 8),
-                        child: Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.primary),
+                        child: Icon(Icons.arrow_forward_ios, size: 14, color: context.colorPrimary),
                       ),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Tujuan', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                            Text('Tujuan', style: TextStyle(fontSize: 11, color: context.colorTextSecondary)),
                             Text(mut.targetProductName, style: const TextStyle(fontWeight: FontWeight.bold)),
                           ],
                         ),
@@ -386,8 +387,8 @@ class _ReportScreenState extends State<ReportScreen> {
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
-                    child: Text('Jumlah: ${mut.quantity}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 13)),
+                    decoration: BoxDecoration(color: context.colorPrimary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
+                    child: Text('Jumlah: ${mut.quantity}', style: TextStyle(fontWeight: FontWeight.bold, color: context.colorPrimary, fontSize: 13)),
                   ),
                 ],
               ),
@@ -468,7 +469,7 @@ class _ReportScreenState extends State<ReportScreen> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: AppColors.primary,
+            color: context.colorPrimary,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -520,7 +521,7 @@ class _ReportScreenState extends State<ReportScreen> {
       scrollDirection: Axis.horizontal,
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.inputFill,
+          color: context.colorInputFill,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -551,14 +552,14 @@ class _ReportScreenState extends State<ReportScreen> {
               label: Text(
                 _periods[index],
                 style: TextStyle(
-                  color: isSelected ? Colors.white : AppColors.textPrimary,
+                  color: isSelected ? Colors.white : context.colorTextPrimary,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                 ),
               ),
               selected: isSelected,
               onSelected: (_) => setState(() => _periodIndex = index),
-              backgroundColor: AppColors.chipInactive,
-              selectedColor: AppColors.primary,
+              backgroundColor: context.colorChipInactive,
+              selectedColor: context.colorPrimary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -581,7 +582,7 @@ class _ReportScreenState extends State<ReportScreen> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       decoration: BoxDecoration(
-        color: AppColors.primary,
+        color: context.colorPrimary,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -637,7 +638,7 @@ class _ReportScreenState extends State<ReportScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
+        border: Border.all(color: context.colorDivider),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -655,7 +656,7 @@ class _ReportScreenState extends State<ReportScreen> {
                   drawVerticalLine: false,
                   horizontalInterval: maxY / 4,
                   getDrawingHorizontalLine: (value) => FlLine(
-                    color: AppColors.divider,
+                    color: context.colorDivider,
                     strokeWidth: 1,
                   ),
                 ),
@@ -668,7 +669,7 @@ class _ReportScreenState extends State<ReportScreen> {
                       getTitlesWidget: (value, meta) {
                         return Text(
                           _formatChartValue(value),
-                          style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                          style: TextStyle(fontSize: 10, color: context.colorTextSecondary),
                         );
                       },
                     ),
@@ -688,7 +689,7 @@ class _ReportScreenState extends State<ReportScreen> {
                           padding: const EdgeInsets.only(top: 6),
                           child: Text(
                             labels[idx],
-                            style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                            style: TextStyle(fontSize: 10, color: context.colorTextSecondary),
                           ),
                         );
                       },
@@ -704,7 +705,7 @@ class _ReportScreenState extends State<ReportScreen> {
                   LineChartBarData(
                     spots: spots,
                     isCurved: true,
-                    color: AppColors.primary,
+                    color: context.colorPrimary,
                     barWidth: 2.5,
                     dotData: FlDotData(
                       show: true,
@@ -713,7 +714,7 @@ class _ReportScreenState extends State<ReportScreen> {
                           radius: 4,
                           color: Colors.white,
                           strokeWidth: 2,
-                          strokeColor: AppColors.primary,
+                          strokeColor: context.colorPrimary,
                         );
                       },
                     ),
@@ -723,8 +724,8 @@ class _ReportScreenState extends State<ReportScreen> {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          AppColors.primary.withValues(alpha: 0.35),
-                          AppColors.primary.withValues(alpha: 0.05),
+                          context.colorPrimary.withValues(alpha: 0.35),
+                          context.colorPrimary.withValues(alpha: 0.05),
                         ],
                       ),
                     ),
@@ -773,7 +774,7 @@ class _ReportScreenState extends State<ReportScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border(bottom: BorderSide(color: AppColors.divider)),
+          border: Border(bottom: BorderSide(color: context.colorDivider)),
         ),
         child: Row(
           children: [
@@ -784,12 +785,12 @@ class _ReportScreenState extends State<ReportScreen> {
                 children: [
                   Text(
                     label.toUpperCase(),
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: context.colorTextPrimary),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     '$count transaksi',
-                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    style: TextStyle(fontSize: 12, color: context.colorTextSecondary),
                   ),
                 ],
               ),
@@ -799,21 +800,21 @@ class _ReportScreenState extends State<ReportScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Pendapatan', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                  Text('Pendapatan', style: TextStyle(fontSize: 11, color: context.colorTextSecondary)),
                   Text(
                     'Rp ${_currencyFormat.format(pendapatan)}',
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: context.colorTextPrimary),
                   ),
                   const SizedBox(height: 4),
-                  const Text('Keuntungan', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                  Text('Keuntungan', style: TextStyle(fontSize: 11, color: context.colorTextSecondary)),
                   Text(
                     'Rp ${_currencyFormat.format(keuntungan)}',
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.primary),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: context.colorPrimary),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textSecondary),
+            Icon(Icons.arrow_forward_ios, size: 16, color: context.colorTextSecondary),
           ],
         ),
       ),
@@ -835,7 +836,7 @@ class _ReportScreenState extends State<ReportScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border(bottom: BorderSide(color: AppColors.divider)),
+          border: Border(bottom: BorderSide(color: context.colorDivider)),
         ),
         child: Row(
           children: [
@@ -846,12 +847,12 @@ class _ReportScreenState extends State<ReportScreen> {
                 children: [
                   Text(
                     label.toUpperCase(),
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: context.colorTextPrimary),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     '$count suplai',
-                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    style: TextStyle(fontSize: 12, color: context.colorTextSecondary),
                   ),
                 ],
               ),
@@ -861,15 +862,15 @@ class _ReportScreenState extends State<ReportScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Total Pengeluaran', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                  Text('Total Pengeluaran', style: TextStyle(fontSize: 11, color: context.colorTextSecondary)),
                   Text(
                     'Rp ${_currencyFormat.format(pengeluaran)}',
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.error),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: context.colorError),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textSecondary),
+            Icon(Icons.arrow_forward_ios, size: 16, color: context.colorTextSecondary),
           ],
         ),
       ),
@@ -895,7 +896,7 @@ class _ReportScreenState extends State<ReportScreen> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: AppColors.primary,
+            color: context.colorPrimary,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -962,7 +963,7 @@ class _ReportScreenState extends State<ReportScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             decoration: BoxDecoration(
               color: Colors.white,
-              border: Border(bottom: BorderSide(color: AppColors.divider)),
+              border: Border(bottom: BorderSide(color: context.colorDivider)),
             ),
             child: Row(
               children: [
@@ -973,12 +974,12 @@ class _ReportScreenState extends State<ReportScreen> {
                     children: [
                       Text(
                         label.toUpperCase(),
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: context.colorTextPrimary),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         '$count kali angsuran',
-                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                        style: TextStyle(fontSize: 12, color: context.colorTextSecondary),
                       ),
                     ],
                   ),
@@ -988,15 +989,15 @@ class _ReportScreenState extends State<ReportScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Uang Masuk (Cash In)', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                      Text('Uang Masuk (Cash In)', style: TextStyle(fontSize: 11, color: context.colorTextSecondary)),
                       Text(
                         'Rp ${_currencyFormat.format(uangMasuk)}',
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.success),
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: context.colorSuccess),
                       ),
                     ],
                   ),
                 ),
-                const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textSecondary),
+                Icon(Icons.arrow_forward_ios, size: 16, color: context.colorTextSecondary),
               ],
             ),
           ),
@@ -1023,7 +1024,7 @@ class _ReportScreenState extends State<ReportScreen> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: AppColors.error,
+            color: context.colorError,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -1090,7 +1091,7 @@ class _ReportScreenState extends State<ReportScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             decoration: BoxDecoration(
               color: Colors.white,
-              border: Border(bottom: BorderSide(color: AppColors.divider)),
+              border: Border(bottom: BorderSide(color: context.colorDivider)),
             ),
             child: Row(
               children: [
@@ -1101,12 +1102,12 @@ class _ReportScreenState extends State<ReportScreen> {
                     children: [
                       Text(
                         label.toUpperCase(),
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: context.colorTextPrimary),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         '$count kali angsuran',
-                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                        style: TextStyle(fontSize: 12, color: context.colorTextSecondary),
                       ),
                     ],
                   ),
@@ -1116,15 +1117,15 @@ class _ReportScreenState extends State<ReportScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Uang Keluar (Cash Out)', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                      Text('Uang Keluar (Cash Out)', style: TextStyle(fontSize: 11, color: context.colorTextSecondary)),
                       Text(
                         'Rp ${_currencyFormat.format(uangKeluar)}',
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.error),
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: context.colorError),
                       ),
                     ],
                   ),
                 ),
-                const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textSecondary),
+                Icon(Icons.arrow_forward_ios, size: 16, color: context.colorTextSecondary),
               ],
             ),
           ),
@@ -1158,7 +1159,7 @@ class _ReportScreenState extends State<ReportScreen> {
           style: TextStyle(
             fontSize: 14,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-            color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
+            color: isSelected ? context.colorTextPrimary : context.colorTextSecondary,
           ),
         ),
       ),

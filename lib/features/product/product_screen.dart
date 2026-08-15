@@ -12,6 +12,7 @@ import '../../data/providers/product_provider.dart';
 import '../../data/models/product_model.dart';
 import '../../core/constants/app_routes.dart';
 import 'add_product_screen.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class ProductScreen extends StatefulWidget {
   const ProductScreen({super.key});
@@ -31,7 +32,8 @@ class _ProductScreenState extends State<ProductScreen> {
       final matchesCategory =
           _selectedCategory == 'Semua' || p.category == _selectedCategory;
       final matchesSearch = _searchQuery.isEmpty ||
-          p.name.toLowerCase().contains(_searchQuery.toLowerCase());
+          p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          p.code.toLowerCase().contains(_searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     }).toList();
 
@@ -66,7 +68,7 @@ class _ProductScreenState extends State<ProductScreen> {
               for (String option in ['Nama (A-Z)', 'Nama (Z-A)', 'Harga Terendah', 'Harga Tertinggi', 'Kategori'])
                 ListTile(
                   title: Text(option),
-                  trailing: _sortOption == option ? const Icon(Icons.check, color: AppColors.primary) : null,
+                  trailing: _sortOption == option ? Icon(Icons.check, color: context.colorPrimary) : null,
                   onTap: () {
                     setState(() {
                       _sortOption = option;
@@ -93,6 +95,7 @@ class _ProductScreenState extends State<ProductScreen> {
 
   void _showEditProductDialog(Product product) {
     final nameController = TextEditingController(text: product.name);
+    final codeController = TextEditingController(text: product.code);
     final categoryController = TextEditingController(text: product.category);
     final basePriceController = TextEditingController(text: product.basePrice.toInt().toString());
     final sellPriceController = TextEditingController(text: product.sellPrice.toInt().toString());
@@ -135,6 +138,13 @@ class _ProductScreenState extends State<ProductScreen> {
                 const SizedBox(height: AppDimensions.spacingMD),
 
                 AppTextField(
+                  label: 'Kode Barang (Opsional)',
+                  hint: 'mis. A1, KY-001',
+                  controller: codeController,
+                ),
+                const SizedBox(height: AppDimensions.spacingMD),
+
+                AppTextField(
                   label: 'Kategori',
                   hint: 'mis. Kayu Balko, Material, Jasa',
                   controller: categoryController,
@@ -145,7 +155,7 @@ class _ProductScreenState extends State<ProductScreen> {
                 Container(
                   padding: const EdgeInsets.all(AppDimensions.spacingMD),
                   decoration: BoxDecoration(
-                    color: AppColors.inputFill,
+                    color: context.colorInputFill,
                     borderRadius: BorderRadius.circular(AppDimensions.radius),
                   ),
                   child: Row(
@@ -157,7 +167,7 @@ class _ProductScreenState extends State<ProductScreen> {
                           value: trackStock,
                           onChanged: (v) =>
                               setDialogState(() => trackStock = v ?? true),
-                          activeColor: AppColors.primary,
+                          activeColor: context.colorPrimary,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(AppDimensions.radius),
                           ),
@@ -222,7 +232,7 @@ class _ProductScreenState extends State<ProductScreen> {
                 Container(
                   padding: const EdgeInsets.all(AppDimensions.spacingMD),
                   decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.divider),
+                    border: Border.all(color: context.colorDivider),
                     borderRadius: BorderRadius.circular(AppDimensions.radius),
                   ),
                   child: Column(
@@ -233,7 +243,7 @@ class _ProductScreenState extends State<ProductScreen> {
                         children: [
                           const Text('Harga Grosir (Opsional)', style: TextStyle(fontWeight: FontWeight.bold)),
                           IconButton(
-                            icon: const Icon(Icons.add_circle, color: AppColors.primary),
+                            icon: Icon(Icons.add_circle, color: context.colorPrimary),
                             onPressed: () {
                               setDialogState(() {
                                 wholesalePrices.add(WholesalePrice(minQty: 10, price: 0));
@@ -313,6 +323,7 @@ class _ProductScreenState extends State<ProductScreen> {
                     }
 
                     final updatedProduct = product.copyWith(
+                      code: codeController.text.trim().isEmpty ? '-' : codeController.text.trim(),
                       name: nameController.text.trim(),
                       category: categoryController.text.trim().isEmpty
                           ? 'Material'
@@ -416,7 +427,7 @@ class _ProductScreenState extends State<ProductScreen> {
               children: [
                 GestureDetector(
                   onTap: _showFilterDialog,
-                  child: Icon(Icons.filter_list, color: AppColors.textSecondary, size: 24),
+                  child: Icon(Icons.filter_list, color: context.colorTextSecondary, size: 24),
                 ),
                 const SizedBox(width: AppDimensions.spacingSM),
                 Expanded(
@@ -425,14 +436,14 @@ class _ProductScreenState extends State<ProductScreen> {
                     onChanged: (v) => setState(() => _searchQuery = v),
                     decoration: InputDecoration(
                       hintText: 'Cari Nama atau kode barang',
-                      prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
+                      prefixIcon: Icon(Icons.search, color: context.colorTextSecondary),
                       contentPadding: const EdgeInsets.symmetric(vertical: 12),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppDimensions.radius),
                         borderSide: BorderSide.none,
                       ),
                       filled: true,
-                      fillColor: AppColors.inputFill,
+                      fillColor: context.colorInputFill,
                     ),
                   ),
                 ),
@@ -456,14 +467,14 @@ class _ProductScreenState extends State<ProductScreen> {
                     label: Text(
                       category,
                       style: TextStyle(
-                        color: isSelected ? Colors.white : AppColors.textPrimary,
+                        color: isSelected ? Colors.white : context.colorTextPrimary,
                         fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                       ),
                     ),
                     selected: isSelected,
                     onSelected: (_) => setState(() => _selectedCategory = category),
-                    backgroundColor: AppColors.chipInactive,
-                    selectedColor: AppColors.primary,
+                    backgroundColor: context.colorChipInactive,
+                    selectedColor: context.colorPrimary,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radius)),
                     side: BorderSide.none,
                     showCheckmark: false,
@@ -515,9 +526,6 @@ class _ProductScreenState extends State<ProductScreen> {
     );
   }
 }
-
-
-
 
 
 

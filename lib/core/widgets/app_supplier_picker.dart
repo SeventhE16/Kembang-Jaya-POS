@@ -7,6 +7,7 @@ import '../widgets/app_button.dart';
 import '../widgets/app_text_field.dart';
 import '../../data/providers/supplier_provider.dart';
 import '../widgets/status_dialog.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class AppSupplierPicker extends StatefulWidget {
   final Supplier? initialSupplier;
@@ -99,7 +100,7 @@ class _AppSupplierPickerState extends State<AppSupplierPicker> {
                     ? Center(
                         child: Text(
                           _searchQuery.isEmpty ? 'Belum ada supplier' : 'Supplier tidak ditemukan',
-                          style: const TextStyle(color: AppColors.textSecondary),
+                          style: TextStyle(color: context.colorTextSecondary),
                         ),
                       )
                     : ListView.separated(
@@ -118,13 +119,13 @@ class _AppSupplierPickerState extends State<AppSupplierPicker> {
                               vertical: 4,
                             ),
                             selected: isSelected,
-                            selectedTileColor: AppColors.primary.withValues(alpha: 0.05),
+                            selectedTileColor: context.colorPrimary.withValues(alpha: 0.05),
                             leading: CircleAvatar(
-                              backgroundColor: isSelected ? AppColors.primary : Colors.grey.shade200,
+                              backgroundColor: isSelected ? context.colorPrimary : Colors.grey.shade200,
                               child: Text(
                                 supplier.name.isNotEmpty ? supplier.name[0].toUpperCase() : '?',
                                 style: TextStyle(
-                                  color: isSelected ? Colors.white : AppColors.textPrimary,
+                                  color: isSelected ? Colors.white : context.colorTextPrimary,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -140,10 +141,10 @@ class _AppSupplierPickerState extends State<AppSupplierPicker> {
                               style: const TextStyle(fontSize: 12),
                             ),
                             trailing: isSelected
-                                ? const Icon(Icons.check_circle, color: AppColors.primary)
+                                ? Icon(Icons.check_circle, color: context.colorPrimary)
                                 : IconButton(
                                     icon: const Icon(Icons.edit_outlined, size: 20),
-                                    color: AppColors.textSecondary,
+                                    color: context.colorTextSecondary,
                                     onPressed: () => _editSupplier(context, supplier),
                                   ),
                             onTap: () => Navigator.pop(context, supplier),
@@ -186,7 +187,7 @@ class _AppSupplierPickerState extends State<AppSupplierPicker> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('Batal', style: TextStyle(color: context.colorTextSecondary)),
           ),
           AppButton(
             label: 'Simpan',
@@ -254,7 +255,7 @@ class _AppSupplierPickerState extends State<AppSupplierPicker> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('Batal', style: TextStyle(color: context.colorTextSecondary)),
           ),
           AppButton(
             label: 'Simpan',

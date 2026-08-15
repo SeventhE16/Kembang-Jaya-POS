@@ -7,6 +7,7 @@ import '../../core/widgets/status_dialog.dart';
 import 'package:provider/provider.dart';
 import '../../data/providers/discount_provider.dart';
 import '../../data/models/discount_model.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class AddDiscountScreen extends StatefulWidget {
   const AddDiscountScreen({super.key});
@@ -81,7 +82,7 @@ class _AddDiscountScreenState extends State<AddDiscountScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.chevron_left, color: AppColors.primary, size: 28),
+          icon: Icon(Icons.chevron_left, color: context.colorPrimary, size: 28),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -185,7 +186,7 @@ class _TypeRadio extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                color: isSelected ? context.colorPrimary : context.colorTextSecondary,
                 width: 2,
               ),
             ),
@@ -194,9 +195,9 @@ class _TypeRadio extends StatelessWidget {
                     child: Container(
                       width: 10,
                       height: 10,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppColors.primary,
+                        color: context.colorPrimary,
                       ),
                     ),
                   )
@@ -209,8 +210,6 @@ class _TypeRadio extends StatelessWidget {
     );
   }
 }
-
-
 
 
 

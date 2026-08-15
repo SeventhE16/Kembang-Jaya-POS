@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../constants/app_colors.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class AppLoading extends StatelessWidget {
   final String? message;
@@ -17,17 +18,17 @@ class AppLoading extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const CircularProgressIndicator(
-            color: AppColors.primary,
+          CircularProgressIndicator(
+            color: context.colorPrimary,
           ),
           if (message != null) ...[
             const SizedBox(height: AppDimensions.spacingMD),
             Text(
               message!,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: AppColors.textSecondary,
+                color: context.colorTextSecondary,
               ),
             ),
           ],
@@ -55,9 +56,9 @@ class AppLoadingOverlay extends StatelessWidget {
         if (isLoading)
           Container(
             color: Colors.black.withValues(alpha: 0.3),
-            child: const Center(
+            child: Center(
               child: CircularProgressIndicator(
-                color: AppColors.primary,
+                color: context.colorPrimary,
               ),
             ),
           ),
@@ -65,4 +66,3 @@ class AppLoadingOverlay extends StatelessWidget {
     );
   }
 }
-

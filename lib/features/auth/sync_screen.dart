@@ -9,6 +9,7 @@ import '../../data/providers/product_provider.dart';
 import '../../data/providers/customer_provider.dart';
 import '../../data/providers/transaction_provider.dart';
 import '../../data/providers/mutation_provider.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class SyncScreen extends StatefulWidget {
   const SyncScreen({super.key});
@@ -111,22 +112,22 @@ class _SyncScreenState extends State<SyncScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.cloud_sync, size: 80, color: AppColors.primary),
+              Icon(Icons.cloud_sync, size: 80, color: context.colorPrimary),
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 'Sinkronisasi Data',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: context.colorTextPrimary,
                 ),
               ),
               const SizedBox(height: 16),
               Text(
                 status,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.textSecondary,
+                  color: context.colorTextSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -136,8 +137,8 @@ class _SyncScreenState extends State<SyncScreen> {
                 child: LinearProgressIndicator(
                   value: progress,
                   minHeight: 10,
-                  backgroundColor: AppColors.inputFill,
-                  valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                  backgroundColor: context.colorInputFill,
+                  valueColor: AlwaysStoppedAnimation<Color>(context.colorPrimary),
                 ),
               ),
             ],
@@ -147,4 +148,3 @@ class _SyncScreenState extends State<SyncScreen> {
     );
   }
 }
-

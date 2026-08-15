@@ -28,7 +28,8 @@ class _SalesScreenState extends State<SalesScreen> {
       final matchesCategory =
           _selectedCategory == 'Semua' || p.category == _selectedCategory;
       final matchesSearch = _searchQuery.isEmpty ||
-          p.name.toLowerCase().contains(_searchQuery.toLowerCase());
+          p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          p.code.toLowerCase().contains(_searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     }).toList();
   }

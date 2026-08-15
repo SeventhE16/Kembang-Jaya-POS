@@ -11,6 +11,7 @@ import '../../data/providers/transaction_provider.dart';
 import '../../data/providers/auth_provider.dart';
 import '../../data/models/product_model.dart';
 import '../../data/models/transaction_model.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class StokOpnameScreen extends StatefulWidget {
   const StokOpnameScreen({super.key});
@@ -108,15 +109,15 @@ class _StokOpnameScreenState extends State<StokOpnameScreen> {
               children: [
                 Container(
                   padding: const EdgeInsets.all(16),
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  child: const Row(
+                  color: context.colorPrimary.withValues(alpha: 0.1),
+                  child: Row(
                     children: [
-                      Icon(Icons.info_outline, color: AppColors.primary),
+                      Icon(Icons.info_outline, color: context.colorPrimary),
                       SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           'Catat jumlah fisik barang di gudang. Jika ada selisih, sesuaikan angka di kolom Fisik.',
-                          style: TextStyle(color: AppColors.primary, fontSize: 13),
+                          style: TextStyle(color: context.colorPrimary, fontSize: 13),
                         ),
                       ),
                     ],
@@ -129,7 +130,7 @@ class _StokOpnameScreenState extends State<StokOpnameScreen> {
                     onChanged: (val) => setState(() => _searchQuery = val),
                     decoration: InputDecoration(
                       hintText: 'Cari nama barang...',
-                      prefixIcon: const Icon(Icons.search, color: AppColors.primary),
+                      prefixIcon: Icon(Icons.search, color: context.colorPrimary),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
                               icon: const Icon(Icons.clear),
@@ -154,8 +155,8 @@ class _StokOpnameScreenState extends State<StokOpnameScreen> {
                       final diff = physStock - sysStock;
                       
                       Color diffColor = Colors.grey;
-                      if (diff > 0) diffColor = AppColors.success;
-                      if (diff < 0) diffColor = AppColors.error;
+                      if (diff > 0) diffColor = context.colorSuccess;
+                      if (diff < 0) diffColor = context.colorError;
 
                       return ListTile(
                         title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -172,7 +173,7 @@ class _StokOpnameScreenState extends State<StokOpnameScreen> {
                           children: [
                               IconButton(
                                 icon: const Icon(Icons.remove_circle_outline),
-                                color: AppColors.error,
+                                color: context.colorError,
                                 onPressed: () {
                                   setState(() {
                                     if (physStock > 0) _physicalStocks[p.id] = physStock - 1;
@@ -182,7 +183,7 @@ class _StokOpnameScreenState extends State<StokOpnameScreen> {
                               Text('$physStock', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                               IconButton(
                                 icon: const Icon(Icons.add_circle_outline),
-                                color: AppColors.success,
+                                color: context.colorSuccess,
                                 onPressed: () {
                                   setState(() {
                                     _physicalStocks[p.id] = physStock + 1;
@@ -213,8 +214,6 @@ class _StokOpnameScreenState extends State<StokOpnameScreen> {
     );
   }
 }
-
-
 
 
 

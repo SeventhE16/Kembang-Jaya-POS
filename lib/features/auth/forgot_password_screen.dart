@@ -7,6 +7,7 @@ import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_text_field.dart';
 import '../../core/widgets/status_dialog.dart';
 import '../../data/providers/auth_provider.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -69,22 +70,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.primarySurface,
+        backgroundColor: context.colorPrimarySurface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: context.colorTextPrimary),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppColors.primarySurface,
+              context.colorPrimarySurface,
               Colors.white,
             ],
             stops: [0.0, 0.5],
@@ -102,22 +103,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   height: 80,
                 ),
                 const SizedBox(height: AppDimensions.spacingLG),
-                const Text(
+                Text(
                   'Lupa Password',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary,
+                    color: context.colorTextPrimary,
                     height: 1.2,
                   ),
                 ),
                 const SizedBox(height: AppDimensions.spacingSM),
-                const Text(
+                Text(
                   'Masukkan email untuk menerima link reset',
                   style: TextStyle(
                     fontSize: 16,
-                    color: AppColors.textSecondary,
+                    color: context.colorTextSecondary,
                   ),
                 ),
                 const SizedBox(height: AppDimensions.spacingXL),

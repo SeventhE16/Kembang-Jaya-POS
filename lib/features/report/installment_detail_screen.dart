@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../data/models/transaction_model.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class InstallmentDetailScreen extends StatelessWidget {
   const InstallmentDetailScreen({super.key});
@@ -34,7 +35,7 @@ class InstallmentDetailScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(AppDimensions.radius),
-                    border: Border.all(color: AppColors.divider),
+                    border: Border.all(color: context.colorDivider),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,11 +45,11 @@ class InstallmentDetailScreen extends StatelessWidget {
                         children: [
                           Text(
                             DateFormat('dd MMM yyyy, HH:mm').format(installment.date),
-                            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                            style: TextStyle(fontSize: 12, color: context.colorTextSecondary),
                           ),
                           Text(
                             installment.cashierName,
-                            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: 12, color: context.colorTextSecondary, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -59,13 +60,13 @@ class InstallmentDetailScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Nominal Angsuran', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                                Text('Nominal Angsuran', style: TextStyle(fontSize: 11, color: context.colorTextSecondary)),
                                 Text(
                                   currencyFormat.format(installment.amount),
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: isOutgoing ? AppColors.error : AppColors.success,
+                                    color: isOutgoing ? context.colorError : context.colorSuccess,
                                   ),
                                 ),
                               ],
@@ -81,7 +82,7 @@ class InstallmentDetailScreen extends StatelessWidget {
                       ],
                       if (installment.transactionId != null) ...[
                         const SizedBox(height: 4),
-                        Text('No. Transaksi: ${installment.transactionId}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                        Text('No. Transaksi: ${installment.transactionId}', style: TextStyle(fontSize: 11, color: context.colorTextSecondary)),
                       ],
                     ],
                   ),

@@ -19,6 +19,7 @@ import '../../core/widgets/status_dialog.dart';
 import '../../core/services/printer_service.dart';
 import '../../core/services/settings_service.dart';
 import '../../data/providers/settings_provider.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
@@ -295,13 +296,13 @@ class _SettingScreenState extends State<SettingScreen> {
       icon: Icons.print_outlined,
       title: 'Printer',
       children: [
-        const Padding(
+        Padding(
           padding: EdgeInsets.only(bottom: 12),
           child: Text(
             'Perangkat Bluetooth Terpasang (Paired).',
             style: TextStyle(
               fontSize: 13,
-              color: AppColors.textSecondary,
+              color: context.colorTextSecondary,
             ),
           ),
         ),
@@ -312,7 +313,7 @@ class _SettingScreenState extends State<SettingScreen> {
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.all(AppDimensions.spacingMD),
             decoration: BoxDecoration(
-              color: AppColors.inputFill,
+              color: context.colorInputFill,
               borderRadius: BorderRadius.circular(AppDimensions.radius),
             ),
             child: Row(
@@ -331,9 +332,9 @@ class _SettingScreenState extends State<SettingScreen> {
                       const SizedBox(height: 2),
                       Text(
                         device.address ?? '-',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.textSecondary,
+                          color: context.colorTextSecondary,
                         ),
                       ),
                     ],
@@ -343,10 +344,10 @@ class _SettingScreenState extends State<SettingScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: AppColors.success.withValues(alpha: 0.15),
+                      color: context.colorSuccess.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(AppDimensions.radius),
                     ),
-                    child: const Text('Terhubung', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.success)),
+                    child: Text('Terhubung', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: context.colorSuccess)),
                   ),
                 const SizedBox(width: AppDimensions.spacingSM),
                 IconButton(
@@ -360,7 +361,7 @@ class _SettingScreenState extends State<SettingScreen> {
                   },
                   icon: Icon(
                     isConnected ? Icons.bluetooth_connected : Icons.bluetooth,
-                    color: isConnected ? AppColors.success : AppColors.primary,
+                    color: isConnected ? context.colorSuccess : context.colorPrimary,
                   ),
                 ),
               ],
@@ -398,9 +399,9 @@ class _SettingScreenState extends State<SettingScreen> {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: AppColors.inputFill,
+                color: context.colorInputFill,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.divider),
+                border: Border.all(color: context.colorDivider),
               ),
               child: _logoFile != null
                   ? ClipRRect(
@@ -412,7 +413,7 @@ class _SettingScreenState extends State<SettingScreen> {
                           borderRadius: BorderRadius.circular(8),
                           child: AppLogo(logoUrl: _logoUrlController.text, height: 80, fit: BoxFit.cover),
                         )
-                      : const Icon(Icons.image, color: AppColors.textSecondary, size: 32),
+                      : Icon(Icons.image, color: context.colorTextSecondary, size: 32),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -492,7 +493,7 @@ class _SettingScreenState extends State<SettingScreen> {
         // Switch tiles in a rounded container
         Container(
           decoration: BoxDecoration(
-            border: Border.all(color: AppColors.divider),
+            border: Border.all(color: context.colorDivider),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
@@ -564,7 +565,7 @@ class _SettingScreenState extends State<SettingScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.divider),
+        border: Border.all(color: context.colorDivider),
       ),
       child: Theme(
         data: ThemeData(
@@ -572,17 +573,17 @@ class _SettingScreenState extends State<SettingScreen> {
           dividerColor: Colors.transparent,
         ),
         child: ExpansionTile(
-          leading: Icon(icon, color: AppColors.primary, size: 24),
+          leading: Icon(icon, color: context.colorPrimary, size: 24),
           title: Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary, // Force dark text
+              color: context.colorTextPrimary, // Force dark text
             ),
           ),
-          iconColor: AppColors.textPrimary,
-          collapsedIconColor: AppColors.textPrimary,
+          iconColor: context.colorTextPrimary,
+          collapsedIconColor: context.colorTextPrimary,
           tilePadding: const EdgeInsets.symmetric(horizontal: 16),
           childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           children: children,
@@ -596,11 +597,11 @@ class _SettingScreenState extends State<SettingScreen> {
     return SwitchListTile(
       title: Text(
         label,
-        style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
+        style: TextStyle(fontSize: 14, color: context.colorTextPrimary),
       ),
       value: value,
       onChanged: onChanged,
-      activeThumbColor: AppColors.primary,
+      activeThumbColor: context.colorPrimary,
       contentPadding: const EdgeInsets.symmetric(horizontal: 12),
       dense: true,
     );
@@ -618,9 +619,9 @@ class _SettingScreenState extends State<SettingScreen> {
           icon: Icons.people_alt,
           title: 'Manajemen Staf',
           children: [
-            const Text(
+            Text(
               'Tambahkan akun staf baru. Staf akan memiliki akses terbatas ke sistem.',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              style: TextStyle(color: context.colorTextSecondary, fontSize: 13),
             ),
             const SizedBox(height: 12),
             AppButton(
@@ -702,7 +703,7 @@ class _SettingScreenState extends State<SettingScreen> {
                             showStatusSnackBar(context, message: 'Gagal membuat akun staf', type: SnackbarType.error);
                           }
                         },
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+                  style: ElevatedButton.styleFrom(backgroundColor: context.colorPrimary),
                   child: isSaving
                       ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                       : const Text('Simpan'),
@@ -715,8 +716,3 @@ class _SettingScreenState extends State<SettingScreen> {
     );
   }
 }
-
-
-
-
-

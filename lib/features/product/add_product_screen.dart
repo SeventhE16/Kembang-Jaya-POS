@@ -6,6 +6,7 @@ import '../../core/widgets/status_dialog.dart';
 import 'package:provider/provider.dart';
 import '../../data/providers/product_provider.dart';
 import '../../data/models/product_model.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class WholesalePriceEntry {
   final TextEditingController qtyController;
@@ -31,6 +32,7 @@ class AddProductScreen extends StatefulWidget {
 
 class _AddProductScreenState extends State<AddProductScreen> {
   final _nameController = TextEditingController();
+  final _codeController = TextEditingController();
   final _categoryController = TextEditingController();
   final _basePriceController = TextEditingController(text: '0');
   final _sellPriceController = TextEditingController(text: '0');
@@ -43,6 +45,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _codeController.dispose();
     _categoryController.dispose();
     _basePriceController.dispose();
     _sellPriceController.dispose();
@@ -93,6 +96,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
     final newProduct = Product(
       id: 'P${DateTime.now().millisecondsSinceEpoch}',
+      code: _codeController.text.trim().isEmpty ? '-' : _codeController.text.trim(),
       name: _nameController.text.trim(),
       category: _categoryController.text.trim().isEmpty
           ? 'Material'
@@ -125,27 +129,27 @@ class _AddProductScreenState extends State<AddProductScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colorBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.colorBackground,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.chevron_left, color: AppColors.primary, size: 28),
+          icon: Icon(Icons.chevron_left, color: context.colorPrimary, size: 28),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Tambah Produk',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: context.colorTextPrimary,
           ),
         ),
       ),
       body: SafeArea(
         child: Column(
           children: [
-            const Divider(height: 1, color: AppColors.divider),
+            Divider(height: 1, color: context.colorDivider),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
@@ -156,6 +160,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       label: 'Nama Barang',
                       hint: 'Nama barang / jasa',
                       controller: _nameController,
+                    ),
+                    const SizedBox(height: 12),
+                    AppTextField(
+                      label: 'Kode Barang (Opsional)',
+                      hint: 'mis. A1, KY-001',
+                      controller: _codeController,
                     ),
                     const SizedBox(height: 16),
                     AppTextField(
@@ -169,7 +179,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.inputFill,
+                        color: context.colorInputFill,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
@@ -184,19 +194,19 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                   _trackStock = v ?? true;
                                 });
                               },
-                              activeColor: AppColors.primary,
+                              activeColor: context.colorPrimary,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(4),
                               ),
                             ),
                           ),
                           const SizedBox(width: 12),
-                          const Expanded(
+                          Expanded(
                             child: Text(
                               'Lacak Stok (Barang) — nonaktifkan untuk Jasa',
                               style: TextStyle(
                                 fontSize: 13,
-                                color: AppColors.textPrimary,
+                                color: context.colorTextPrimary,
                               ),
                             ),
                           ),
@@ -252,12 +262,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Harga Grosir (Opsional)',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
+                            color: context.colorTextPrimary,
                           ),
                         ),
                         TextButton.icon(
@@ -265,16 +275,16 @@ class _AddProductScreenState extends State<AddProductScreen> {
                           icon: const Icon(Icons.add, size: 18),
                           label: const Text('Tambah'),
                           style: TextButton.styleFrom(
-                            foregroundColor: AppColors.primary,
+                            foregroundColor: context.colorPrimary,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
                     if (_wholesaleEntries.isEmpty)
-                      const Text(
+                      Text(
                         'Belum ada harga grosir yang ditambahkan.',
-                        style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                        style: TextStyle(color: context.colorTextSecondary, fontSize: 14),
                       ),
                     ...List.generate(_wholesaleEntries.length, (index) {
                       final entry = _wholesaleEntries[index];
@@ -304,7 +314,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                             IconButton(
                               onPressed: () => _removeWholesaleEntry(index),
                               icon: const Icon(Icons.delete_outline),
-                              color: AppColors.error,
+                              color: context.colorError,
                             ),
                           ],
                         ),
@@ -318,10 +328,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
             // Bottom buttons
             Container(
               padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                color: AppColors.background,
+              decoration: BoxDecoration(
+                color: context.colorBackground,
                 border: Border(
-                  top: BorderSide(color: AppColors.divider),
+                  top: BorderSide(color: context.colorDivider),
                 ),
               ),
               child: Column(

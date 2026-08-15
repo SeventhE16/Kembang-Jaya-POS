@@ -15,6 +15,7 @@ import '../../data/providers/auth_provider.dart';
 import '../../data/providers/supplier_provider.dart';
 import '../../data/providers/transaction_provider.dart';
 import '../../core/widgets/app_supplier_picker.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class HutangScreen extends StatefulWidget {
   const HutangScreen({super.key});
@@ -161,19 +162,19 @@ class _HutangScreenState extends State<HutangScreen> {
                                 if (supplier != null && supplier.phone.isNotEmpty)
                                   Text(
                                     'HP: ${supplier.phone}',
-                                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                    style: TextStyle(fontSize: 12, color: context.colorTextSecondary),
                                   ),
                               ],
                             ),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: AppColors.error.withValues(alpha: 0.1),
+                                color: context.colorError.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
                                 'Belum Lunas',
-                                style: const TextStyle(fontSize: 11, color: AppColors.error, fontWeight: FontWeight.bold),
+                                style: TextStyle(fontSize: 11, color: context.colorError, fontWeight: FontWeight.bold),
                               ),
                             ),
                           ],
@@ -181,18 +182,18 @@ class _HutangScreenState extends State<HutangScreen> {
                         const SizedBox(height: AppDimensions.spacingSM),
                         Text(
                           'Sisa Hutang: ${currencyFormat.format(tx.debtAmount)}',
-                          style: const TextStyle(fontSize: 16, color: AppColors.error, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: 16, color: context.colorError, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'Total Pembelian: ${currencyFormat.format(tx.total)}',
-                          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                          style: TextStyle(fontSize: 13, color: context.colorTextSecondary),
                         ),
                         const SizedBox(height: 4),
                         const SizedBox(height: 4),
                         Text(
                           'Tgl: ${DateFormat('dd MMM yyyy HH:mm').format(tx.date)} • ID: ${tx.invoiceNumber ?? tx.id}',
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: TextStyle(fontSize: 12, color: context.colorTextSecondary),
                         ),
                         const SizedBox(height: 12),
                         ExpansionTile(
@@ -216,9 +217,9 @@ class _HutangScreenState extends State<HutangScreen> {
                                   );
                                 }
                                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                                  return const Padding(
+                                  return Padding(
                                     padding: EdgeInsets.all(8.0),
-                                    child: Text('Belum ada riwayat pembayaran', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                                    child: Text('Belum ada riwayat pembayaran', style: TextStyle(color: context.colorTextSecondary, fontSize: 12)),
                                   );
                                 }
                                 return Column(
@@ -258,7 +259,7 @@ class _HutangScreenState extends State<HutangScreen> {
                                 icon: const Icon(Icons.payment, size: 16),
                                 label: const Text('Bayar Hutang'),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.success,
+                                  backgroundColor: context.colorSuccess,
                                   foregroundColor: Colors.white,
                                 ),
                                 onPressed: () => _payCicilan(tx),

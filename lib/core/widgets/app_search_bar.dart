@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../constants/app_colors.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class AppSearchBar extends StatelessWidget {
   final TextEditingController controller;
@@ -26,7 +27,7 @@ class AppSearchBar extends StatelessWidget {
           child: Container(
             height: 48,
             decoration: BoxDecoration(
-              color: AppColors.inputFill,
+              color: context.colorInputFill,
               borderRadius: BorderRadius.circular(12),
             ),
             child: TextField(
@@ -34,8 +35,8 @@ class AppSearchBar extends StatelessWidget {
               onChanged: onChanged,
               decoration: InputDecoration(
                 hintText: hintText,
-                hintStyle: const TextStyle(color: AppColors.textHint, fontSize: 14),
-                prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
+                hintStyle: TextStyle(color: context.colorTextHint, fontSize: 14),
+                prefixIcon: Icon(Icons.search, color: context.colorTextSecondary),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
@@ -48,11 +49,11 @@ class AppSearchBar extends StatelessWidget {
             height: 48,
             width: 48,
             decoration: BoxDecoration(
-              color: AppColors.inputFill,
+              color: context.colorInputFill,
               borderRadius: BorderRadius.circular(12),
             ),
             child: IconButton(
-              icon: const Icon(Icons.tune, color: AppColors.textPrimary),
+              icon: Icon(Icons.tune, color: context.colorTextPrimary),
               onPressed: onFilterTap,
             ),
           ),
@@ -65,4 +66,3 @@ class AppSearchBar extends StatelessWidget {
     );
   }
 }
-

@@ -10,6 +10,7 @@ import '../../data/providers/fee_provider.dart';
 import '../../data/models/fee_model.dart';
 import '../../core/widgets/status_dialog.dart';
 import 'add_fee_screen.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class FeeScreen extends StatefulWidget {
   const FeeScreen({super.key});
@@ -147,7 +148,7 @@ class _FeeScreenState extends State<FeeScreen> {
                 type: SnackbarType.success,
               );
             },
-            child: const Text('Hapus', style: TextStyle(color: AppColors.error)),
+            child: Text('Hapus', style: TextStyle(color: context.colorError)),
           ),
         ],
       ),
@@ -202,7 +203,7 @@ class _FeeScreenState extends State<FeeScreen> {
                                   color: Theme.of(context).cardColor,
                                   borderRadius: BorderRadius.circular(AppDimensions.radius),
                                   border: Border.all(
-                                    color: AppColors.divider,
+                                    color: context.colorDivider,
                                     width: 0.5,
                                   ),
                                 ),
@@ -231,20 +232,20 @@ class _FeeScreenState extends State<FeeScreen> {
                                           const SizedBox(height: 4),
                                           Text(
                                             'Rp ${NumberFormat.currency(locale: 'id_ID', symbol: '', decimalDigits: 0).format(fee.value)}',
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontSize: 14,
-                                              color: AppColors.textSecondary,
+                                              color: context.colorTextSecondary,
                                             ),
                                           ),
                                         ],
                                       ),
                                     ),
                                     IconButton(
-                                      icon: const Icon(Icons.edit_outlined, color: AppColors.primary),
+                                      icon: Icon(Icons.edit_outlined, color: context.colorPrimary),
                                       onPressed: () => _showEditFeeDialog(fee),
                                     ),
                                     IconButton(
-                                      icon: const Icon(Icons.delete_outline, color: AppColors.error),
+                                      icon: Icon(Icons.delete_outline, color: context.colorError),
                                       onPressed: () => _deleteFee(fee),
                                     ),
                                   ],
@@ -261,17 +262,13 @@ class _FeeScreenState extends State<FeeScreen> {
       floatingActionButton: Provider.of<FeeProvider>(context).fees.isNotEmpty
           ? FloatingActionButton(
               onPressed: _navigateToAddFee,
-              backgroundColor: AppColors.primary,
+              backgroundColor: context.colorPrimary,
               child: const Icon(Icons.add, color: Colors.white),
             )
           : null,
     );
   }
 }
-
-
-
-
 
 
 
