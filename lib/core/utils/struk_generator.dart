@@ -12,7 +12,7 @@ class StrukGenerator {
     required BuildContext context, 
     required Transaction transaction, 
     StoreSettings? settings,
-    UserModel? user,
+    User? user,
     bool isRestock = false,
   }) {
     final cart = transaction.items;
