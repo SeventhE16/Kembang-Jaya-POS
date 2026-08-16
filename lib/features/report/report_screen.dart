@@ -877,7 +877,7 @@ class _ReportScreenState extends State<ReportScreen> {
                   Text('Total Pengeluaran', style: TextStyle(fontSize: 11, color: context.colorTextSecondary)),
                   Text(
                     'Rp ${_currencyFormat.format(pengeluaran)}',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: context.colorError),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: context.colorPrimary),
                   ),
                 ],
               ),
@@ -1036,7 +1036,7 @@ class _ReportScreenState extends State<ReportScreen> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: context.colorError,
+            color: context.colorPrimary,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -1132,7 +1132,7 @@ class _ReportScreenState extends State<ReportScreen> {
                       Text('Uang Keluar (Cash Out)', style: TextStyle(fontSize: 11, color: context.colorTextSecondary)),
                       Text(
                         'Rp ${_currencyFormat.format(uangKeluar)}',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: context.colorError),
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: context.colorPrimary),
                       ),
                     ],
                   ),

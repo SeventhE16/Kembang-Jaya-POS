@@ -568,8 +568,7 @@ class _SettingScreenState extends State<SettingScreen> {
         border: Border.all(color: context.colorDivider),
       ),
       child: Theme(
-        data: ThemeData(
-          brightness: Brightness.light,
+        data: Theme.of(context).copyWith(
           dividerColor: Colors.transparent,
         ),
         child: ExpansionTile(
