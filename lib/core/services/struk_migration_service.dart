@@ -5,6 +5,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../data/models/transaction_model.dart';
 import '../../data/providers/transaction_provider.dart';
+import '../../data/providers/settings_provider.dart';
+import '../../data/providers/auth_provider.dart';
 import 'store_context.dart';
 import '../utils/struk_generator.dart';
 
@@ -31,13 +33,21 @@ class StrukMigrationService {
 
       final controller = ScreenshotController();
       final txProv = Provider.of<TransactionProvider>(context, listen: false);
+      final settings = Provider.of<SettingsProvider>(context, listen: false).settings;
+      final user = Provider.of<AuthProvider>(context, listen: false).user;
 
       for (var doc in snapshot.docs) {
         final tx = Transaction.fromJson(doc.data(), doc.id);
         
         try {
           final isRestock = tx.type == 'purchase';
-          final widget = StrukGenerator.buildStrukContent(context, tx, isRestock: isRestock);
+          final widget = StrukGenerator.buildStrukContent(
+            context: context, 
+            transaction: tx, 
+            settings: settings,
+            user: user,
+            isRestock: isRestock
+          );
           final bytes = await controller.captureFromWidget(widget);
 
           final ref = FirebaseStorage.instance.ref('struk/${tx.id}.png');

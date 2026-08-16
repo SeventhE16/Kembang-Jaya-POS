@@ -3,13 +3,18 @@ import 'package:intl/intl.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../core/widgets/app_logo.dart';
 import '../../data/models/transaction_model.dart';
-import '../../data/providers/settings_provider.dart';
-import '../../data/providers/auth_provider.dart';
-import 'package:provider/provider.dart';
+import '../../core/services/settings_service.dart';
+import '../../data/models/user_model.dart';
 import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class StrukGenerator {
-  static Widget buildStrukContent(BuildContext context, Transaction transaction, {bool isRestock = false}) {
+  static Widget buildStrukContent({
+    required BuildContext context, 
+    required Transaction transaction, 
+    StoreSettings? settings,
+    UserModel? user,
+    bool isRestock = false,
+  }) {
     final cart = transaction.items;
     final subtotal = transaction.subtotal;
     final discount = transaction.extraDiscount;
@@ -18,12 +23,15 @@ class StrukGenerator {
     final total = transaction.total;
     final isCredit = transaction.paymentMethod == 'Kasbon' && transaction.debtAmount > 0;
     final date = DateFormat('yyyy-MM-dd HH:mm:ss').format(transaction.date);
-    
-    final settings = Provider.of<SettingsProvider>(context, listen: false).settings;
-    final user = Provider.of<AuthProvider>(context, listen: false).user;
 
-    return Container(
-      color: Colors.white,
+    return MediaQuery(
+      data: const MediaQueryData(),
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: Material(
+          color: Colors.white,
+          child: Container(
+            color: Colors.white,
       width: 400,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: Column(
@@ -169,6 +177,8 @@ class StrukGenerator {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black87),
           ),
         ],
+      ),
+        ),
       ),
     );
   }
