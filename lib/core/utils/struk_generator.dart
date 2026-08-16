@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
+import 'dart:ui' as ui;
 import 'package:intl/intl.dart';
-import '../../core/constants/app_dimensions.dart';
 import '../../core/widgets/app_logo.dart';
 import '../../data/models/transaction_model.dart';
 import '../../core/services/settings_service.dart';
 import '../../data/models/user_model.dart';
-import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class StrukGenerator {
   static Widget buildStrukContent({
@@ -27,7 +26,7 @@ class StrukGenerator {
     return MediaQuery(
       data: const MediaQueryData(),
       child: Directionality(
-        textDirection: TextDirection.ltr,
+        textDirection: ui.TextDirection.ltr,
         child: Material(
           color: Colors.white,
           child: Container(
@@ -92,7 +91,6 @@ class StrukGenerator {
           
           // Items
           ...cart.map((item) {
-            final price = item.customPrice ?? item.product.sellPrice;
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Column(
@@ -178,6 +176,7 @@ class StrukGenerator {
           ),
         ],
       ),
+          ),
         ),
       ),
     );
