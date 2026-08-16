@@ -146,9 +146,9 @@ class _MutationScreenState extends State<MutationScreen> {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Pindahkan stok barang dari satu grade/kualitas ke grade lainnya. Stok asal akan berkurang, stok tujuan akan bertambah secara otomatis.',
-                    style: TextStyle(color: Colors.black54),
+                    style: TextStyle(color: context.colorTextSecondary),
                   ),
                   const SizedBox(height: 24),
 

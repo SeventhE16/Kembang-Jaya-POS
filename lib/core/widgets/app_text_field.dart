@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class AppTextField extends StatelessWidget {
   final String? label;
@@ -43,7 +44,7 @@ class AppTextField extends StatelessWidget {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: Theme.of(context).textTheme.bodyMedium?.color,
+              color: context.colorTextSecondary,
             ),
           ),
           const SizedBox(height: 6),
@@ -57,6 +58,7 @@ class AppTextField extends StatelessWidget {
           onTap: onTap,
           onChanged: onChanged,
           inputFormatters: inputFormatters,
+          style: TextStyle(color: context.colorTextPrimary),
           decoration: InputDecoration(
             hintText: hint,
             suffixIcon: suffix,
