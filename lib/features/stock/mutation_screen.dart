@@ -156,6 +156,7 @@ class _MutationScreenState extends State<MutationScreen> {
                   const Text('Produk Asal', style: TextStyle(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   _buildProductDropdown(
+                    title: 'Pilih Produk Asal',
                     value: _sourceProduct,
                     onChanged: (p) => setState(() => _sourceProduct = p),
                   ),
@@ -170,6 +171,7 @@ class _MutationScreenState extends State<MutationScreen> {
                   const Text('Produk Tujuan', style: TextStyle(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   _buildProductDropdown(
+                    title: 'Pilih Produk Tujuan',
                     value: _targetProduct,
                     onChanged: (p) => setState(() => _targetProduct = p),
                   ),
@@ -201,38 +203,147 @@ class _MutationScreenState extends State<MutationScreen> {
     );
   }
 
-  Widget _buildProductDropdown({required Product? value, required ValueChanged<Product?> onChanged}) {
+  void _showProductSearch(BuildContext context, List<Product> products, String title, ValueChanged<Product?> onChanged) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (ctx) {
+        return _ProductSearchSheet(
+            products: products, title: title, onSelected: onChanged);
+      },
+    );
+  }
+
+  Widget _buildProductDropdown({required String title, required Product? value, required ValueChanged<Product?> onChanged}) {
     return Consumer<ProductProvider>(
       builder: (context, provider, _) {
         // Filter out "Jasa"
         final products = provider.products.where((p) => p.category != 'Jasa').toList();
 
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              isExpanded: true,
-              hint: const Text('Pilih Produk'),
-              value: value?.id,
-              items: products.map((p) {
-                return DropdownMenuItem<String>(
-                  value: p.id,
-                  child: Text(p.name),
-                );
-              }).toList(),
-              onChanged: (id) {
-                if (id != null) {
-                  onChanged(products.firstWhere((p) => p.id == id));
-                }
-              },
+        return InkWell(
+          onTap: () => _showProductSearch(context, products, title, onChanged),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    value?.name ?? 'Pilih Produk (Ketuk untuk mencari)',
+                    style: TextStyle(
+                      color: value == null ? Colors.black54 : Colors.black87,
+                      fontSize: 16,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const Icon(Icons.search, color: Colors.black54),
+              ],
             ),
           ),
         );
       },
+    );
+  }
+}
+
+class _ProductSearchSheet extends StatefulWidget {
+  final List<Product> products;
+  final String title;
+  final ValueChanged<Product> onSelected;
+
+  const _ProductSearchSheet({
+    required this.products,
+    required this.title,
+    required this.onSelected,
+  });
+
+  @override
+  State<_ProductSearchSheet> createState() => _ProductSearchSheetState();
+}
+
+class _ProductSearchSheetState extends State<_ProductSearchSheet> {
+  final TextEditingController _searchCtrl = TextEditingController();
+  List<Product> _filtered = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _filtered = widget.products;
+  }
+  
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  void _filter(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        _filtered = widget.products;
+      } else {
+        _filtered = widget.products
+            .where((p) => p.name.toLowerCase().contains(query.toLowerCase()) || p.code.toLowerCase().contains(query.toLowerCase()))
+            .toList();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+        top: 16,
+        left: 16,
+        right: 16,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(widget.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _searchCtrl,
+            onChanged: _filter,
+            autofocus: true,
+            decoration: InputDecoration(
+              hintText: 'Cari nama barang atau kode...',
+              prefixIcon: const Icon(Icons.search),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 350, // Fixed height for the list
+            child: ListView.separated(
+              itemCount: _filtered.length,
+              separatorBuilder: (_, __) => const Divider(height: 1),
+              itemBuilder: (ctx, i) {
+                final p = _filtered[i];
+                return ListTile(
+                  title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w500)),
+                  subtitle: Text('Sisa Stok: ${p.stock}', style: TextStyle(color: p.stock > 0 ? Colors.green : Colors.red)),
+                  trailing: const Icon(Icons.chevron_right, size: 20),
+                  onTap: () {
+                    widget.onSelected(p);
+                    Navigator.pop(context);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
