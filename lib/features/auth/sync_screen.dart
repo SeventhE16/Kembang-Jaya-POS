@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/widgets/status_dialog.dart';
 import '../../data/providers/auth_provider.dart';

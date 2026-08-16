@@ -5,7 +5,6 @@ import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/material.dart';
 import '../../core/constants/app_dimensions.dart';
-import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_logo.dart';
@@ -286,7 +285,9 @@ class _RestockConfirmationScreenState extends State<RestockConfirmationScreen> {
       final date = DateFormat('dd/MM/yyyy, HH:mm').format(transaction?.date ?? DateTime.now());
       final text = 'Terlampir bukti pembelian sebesar $total, pada $date';
 
-      await Share.shareXFiles([XFile(imagePath.path)], text: text);
+      await SharePlus.instance.share(
+        ShareParams(files: [XFile(imagePath.path)], text: text),
+      );
     } catch (e) {
       if (mounted) {
         showStatusSnackBar(context, message: 'Gagal membagikan struk', type: SnackbarType.error);

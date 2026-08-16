@@ -325,7 +325,9 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
       final date = DateFormat('dd/MM/yyyy, HH:mm').format(transaction?.date ?? DateTime.now());
       final text = 'Terimakasih telah belanja sebesar $total, pada $date di Depot Kayu Kembang Jaya';
 
-      await Share.shareXFiles([XFile(imagePath.path)], text: text);
+      await SharePlus.instance.share(
+        ShareParams(files: [XFile(imagePath.path)], text: text),
+      );
     } catch (e) {
       if (mounted) {
         showStatusSnackBar(context, message: 'Gagal membagikan struk', type: SnackbarType.error);
