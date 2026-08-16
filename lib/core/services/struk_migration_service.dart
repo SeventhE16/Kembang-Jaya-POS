@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' hide Transaction;
 import '../../data/models/transaction_model.dart';
 import '../../data/providers/transaction_provider.dart';
 import '../../data/providers/settings_provider.dart';
@@ -34,7 +34,7 @@ class StrukMigrationService {
       final controller = ScreenshotController();
       final txProv = Provider.of<TransactionProvider>(context, listen: false);
       final settings = Provider.of<SettingsProvider>(context, listen: false).settings;
-      final user = Provider.of<AuthProvider>(context, listen: false).user;
+      final user = Provider.of<AuthProvider>(context, listen: false).userModel;
 
       for (var doc in snapshot.docs) {
         final tx = Transaction.fromJson(doc.data(), doc.id);
