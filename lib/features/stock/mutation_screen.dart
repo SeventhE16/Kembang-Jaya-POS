@@ -183,6 +183,7 @@ class _MutationScreenState extends State<MutationScreen> {
                   TextField(
                     controller: _qtyController,
                     keyboardType: TextInputType.number,
+                    style: TextStyle(color: context.colorTextPrimary),
                     decoration: InputDecoration(
                       hintText: '0',
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
@@ -227,7 +228,7 @@ class _MutationScreenState extends State<MutationScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
+              border: Border.all(color: context.colorDivider),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -237,14 +238,14 @@ class _MutationScreenState extends State<MutationScreen> {
                   child: Text(
                     value?.name ?? 'Pilih Produk (Ketuk untuk mencari)',
                     style: TextStyle(
-                      color: value == null ? Colors.black54 : Colors.black87,
+                      color: value == null ? context.colorTextSecondary : context.colorTextPrimary,
                       fontSize: 16,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Icon(Icons.search, color: Colors.black54),
+                Icon(Icons.search, color: context.colorTextSecondary),
               ],
             ),
           ),
@@ -315,6 +316,7 @@ class _ProductSearchSheetState extends State<_ProductSearchSheet> {
             controller: _searchCtrl,
             onChanged: _filter,
             autofocus: true,
+            style: TextStyle(color: context.colorTextPrimary),
             decoration: InputDecoration(
               hintText: 'Cari nama barang atau kode...',
               prefixIcon: const Icon(Icons.search),

@@ -563,7 +563,7 @@ class _SettingScreenState extends State<SettingScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.colorSurface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: context.colorDivider),
       ),

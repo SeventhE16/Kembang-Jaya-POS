@@ -124,9 +124,9 @@ class _AddStockScreenState extends State<AddStockScreen> {
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacingMD, vertical: AppDimensions.spacingSM),
-                itemCount: productProvider.categories.length + 1,
+                itemCount: productProvider.categories.length,
                 itemBuilder: (context, index) {
-                  final category = index == 0 ? 'Semua' : productProvider.categories[index - 1];
+                  final category = productProvider.categories[index];
                   final isSelected = category == _selectedCategory;
                   return Padding(
                     padding: const EdgeInsets.only(right: AppDimensions.spacingSM),

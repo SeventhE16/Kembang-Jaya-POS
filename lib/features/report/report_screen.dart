@@ -285,7 +285,7 @@ class _ReportScreenState extends State<ReportScreen> {
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.colorSurface,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: Colors.grey.shade200),
             ),
@@ -343,7 +343,7 @@ class _ReportScreenState extends State<ReportScreen> {
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: context.colorSurface,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: Colors.grey.shade200),
               ),
@@ -648,7 +648,7 @@ class _ReportScreenState extends State<ReportScreen> {
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(8, 20, 20, 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.colorSurface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: context.colorDivider),
       ),
@@ -785,7 +785,7 @@ class _ReportScreenState extends State<ReportScreen> {
         margin: const EdgeInsets.only(bottom: 1),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.colorSurface,
           border: Border(bottom: BorderSide(color: context.colorDivider)),
         ),
         child: Row(
@@ -847,7 +847,7 @@ class _ReportScreenState extends State<ReportScreen> {
         margin: const EdgeInsets.only(bottom: 1),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.colorSurface,
           border: Border(bottom: BorderSide(color: context.colorDivider)),
         ),
         child: Row(
