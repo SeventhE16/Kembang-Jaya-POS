@@ -14,6 +14,9 @@ class TransactionProvider extends ChangeNotifier {
   List<StockOpnameEntry> _stockOpnames = [];
   bool _isLoading = true;
 
+  DateTime? _filterStartDate;
+  DateTime? _filterEndDate;
+
   List<Transaction> get transactions => _transactions;
   List<Transaction> get salesTransactions => _transactions.where((t) => t.type == 'sale').toList();
   List<Transaction> get purchaseTransactions => _transactions.where((t) => t.type == 'purchase').toList();
@@ -24,10 +27,13 @@ class TransactionProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   final List<StreamSubscription> _subs = [];
-
+  StreamSubscription? _txSub;
   StreamSubscription? _storeSub;
 
   TransactionProvider() {
+    final now = DateTime.now();
+    _filterStartDate = DateTime(now.year, now.month, 1);
+    
     _storeSub = StoreContext().storeIdStream.listen((storeId) {
       _cancelSubs();
       if (storeId == null) {
@@ -49,11 +55,7 @@ class TransactionProvider extends ChangeNotifier {
   }
 
   void _initSubs() {
-    _subs.add(_transactionService.streamTransactions().listen((transactions) {
-      _transactions = transactions;
-      _isLoading = false;
-      notifyListeners();
-    }));
+    _startTransactionStream();
 
     _subs.add(_transactionService.streamHoldOrders().listen((orders) {
       _holdOrders = orders;
@@ -77,10 +79,31 @@ class TransactionProvider extends ChangeNotifier {
   }
 
   void _cancelSubs() {
+    _txSub?.cancel();
     for (var sub in _subs) {
       sub.cancel();
     }
     _subs.clear();
+  }
+
+  void _startTransactionStream() {
+    _txSub?.cancel();
+    _isLoading = true;
+    notifyListeners();
+    
+    _txSub = _transactionService
+        .streamTransactions(startDate: _filterStartDate, endDate: _filterEndDate)
+        .listen((transactions) {
+      _transactions = transactions;
+      _isLoading = false;
+      notifyListeners();
+    });
+  }
+
+  void setDateRangeFilter({DateTime? startDate, DateTime? endDate}) {
+    _filterStartDate = startDate;
+    _filterEndDate = endDate;
+    _startTransactionStream();
   }
 
   Future<void> addTransaction(Transaction transaction) async {

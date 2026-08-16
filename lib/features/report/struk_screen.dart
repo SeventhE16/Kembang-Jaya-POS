@@ -425,9 +425,18 @@ class _StrukScreenState extends State<StrukScreen> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppDimensions.spacingLG),
         child: Center(
-          child: Screenshot(
-            controller: _screenshotController,
-            child: _buildStrukContent(transaction),
+          child: transaction.strukUrl != null
+              ? Image.network(
+                  transaction.strukUrl!,
+                  loadingBuilder: (context, child, progress) {
+                    if (progress == null) return child;
+                    return const CircularProgressIndicator();
+                  },
+                )
+              : Screenshot(
+                  controller: _screenshotController,
+                  child: _buildStrukContent(transaction),
+                ),
           ),
         ),
       ),

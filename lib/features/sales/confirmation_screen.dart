@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
@@ -11,6 +12,7 @@ import '../../core/widgets/app_logo.dart';
 import '../../core/widgets/status_dialog.dart';
 import 'package:provider/provider.dart';
 import '../../data/providers/cart_provider.dart';
+import '../../data/providers/transaction_provider.dart';
 import '../../data/providers/settings_provider.dart';
 import '../../data/models/transaction_model.dart';
 import '../../data/models/product_model.dart';
@@ -36,6 +38,34 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
   );
 
   final ScreenshotController _screenshotController = ScreenshotController();
+  bool _hasStartedUpload = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_hasStartedUpload) {
+      final transaction = ModalRoute.of(context)?.settings.arguments as Transaction?;
+      if (transaction != null && transaction.strukUrl == null) {
+        _hasStartedUpload = true;
+        _uploadStrukToCloud(transaction);
+      }
+    }
+  }
+
+  Future<void> _uploadStrukToCloud(Transaction transaction) async {
+    try {
+      final imageBytes = await _screenshotController.captureFromWidget(_buildStrukContent(transaction));
+      final ref = FirebaseStorage.instance.ref('struk/${transaction.id}.png');
+      await ref.putData(imageBytes);
+      final url = await ref.getDownloadURL();
+      
+      final txProv = Provider.of<TransactionProvider>(context, listen: false);
+      final updatedTx = transaction.copyWith(strukUrl: url);
+      await txProv.updateTransaction(updatedTx);
+    } catch (e) {
+      debugPrint('Auto-upload struk gagal: $e');
+    }
+  }
 
   void _finishTransaction() {
     _cart.clearCart();

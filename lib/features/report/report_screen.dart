@@ -557,7 +557,19 @@ class _ReportScreenState extends State<ReportScreen> {
                 ),
               ),
               selected: isSelected,
-              onSelected: (_) => setState(() => _periodIndex = index),
+              onSelected: (_) {
+                setState(() => _periodIndex = index);
+                final now = DateTime.now();
+                DateTime? startDate;
+                switch (index) {
+                  case 0: startDate = DateTime(now.year, now.month, now.day); break;
+                  case 1: startDate = DateTime(now.year, now.month, 1); break;
+                  case 2: startDate = DateTime(now.year, 1, 1); break;
+                  case 3: startDate = null; break;
+                }
+                Provider.of<TransactionProvider>(context, listen: false)
+                    .setDateRangeFilter(startDate: startDate);
+              },
               backgroundColor: context.colorChipInactive,
               selectedColor: context.colorPrimary,
               shape: RoundedRectangleBorder(

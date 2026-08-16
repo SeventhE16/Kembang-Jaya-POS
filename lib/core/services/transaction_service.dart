@@ -6,12 +6,19 @@ import 'store_context.dart';
 class TransactionService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Stream<List<Transaction>> streamTransactions() {
-    return _firestore
+  Stream<List<Transaction>> streamTransactions({DateTime? startDate, DateTime? endDate}) {
+    var query = _firestore
         .collection('transactions')
-        .where('storeId', isEqualTo: StoreContext().storeId)
-        .snapshots()
-        .map((snapshot) {
+        .where('storeId', isEqualTo: StoreContext().storeId);
+
+    if (startDate != null) {
+      query = query.where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate));
+    }
+    if (endDate != null) {
+      query = query.where('date', isLessThanOrEqualTo: Timestamp.fromDate(endDate));
+    }
+
+    return query.snapshots().map((snapshot) {
       final list = snapshot.docs.map((doc) => Transaction.fromJson(doc.data(), doc.id)).toList();
       list.sort((a, b) => b.date.compareTo(a.date));
       return list;

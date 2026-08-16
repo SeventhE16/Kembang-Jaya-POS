@@ -10,6 +10,7 @@ import '../../data/providers/product_provider.dart';
 import '../../data/providers/cart_provider.dart';
 import '../../data/models/product_model.dart';
 import '../../data/models/transaction_model.dart';
+import '../../core/services/struk_migration_service.dart';
 
 class SalesScreen extends StatefulWidget {
   const SalesScreen({super.key});
@@ -22,6 +23,14 @@ class _SalesScreenState extends State<SalesScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedCategory = 'Semua';
   String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      StrukMigrationService.runMigration(context);
+    });
+  }
 
   List<Product> _getFilteredProducts(List<Product> allProducts) {
     return allProducts.where((p) {

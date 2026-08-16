@@ -193,6 +193,7 @@ class Transaction {
   final String? createdBy;
   final String? updatedBy;
   final List<InstallmentPayment> installments;
+  final String? strukUrl;
 
   Transaction({
     required this.id,
@@ -217,6 +218,7 @@ class Transaction {
     this.createdBy,
     this.updatedBy,
     this.installments = const [],
+    this.strukUrl,
   });
 
   factory Transaction.fromJson(Map<String, dynamic> json, String id) {
@@ -254,6 +256,8 @@ class Transaction {
       'supplierName': supplierName,
       'cashierName': cashierName,
       'items': items.map((e) => e.toJson()).toList(),
+      'strukUrl': strukUrl,
+      'installments': installments.map((e) => e.toJson()).toList(),
       'discount': discount != null ? (discount!.toJson()..['id'] = discount!.id) : null,
       'extraDiscount': extraDiscount,
       'fee': fee != null ? (fee!.toJson()..['id'] = fee!.id) : null,
@@ -294,6 +298,7 @@ class Transaction {
     String? createdBy,
     String? updatedBy,
     List<InstallmentPayment>? installments,
+    String? strukUrl,
   }) {
     return Transaction(
       id: id ?? this.id,
@@ -318,6 +323,7 @@ class Transaction {
       createdBy: createdBy ?? this.createdBy,
       updatedBy: updatedBy ?? this.updatedBy,
       installments: installments ?? this.installments,
+      strukUrl: strukUrl ?? this.strukUrl,
     );
   }
 

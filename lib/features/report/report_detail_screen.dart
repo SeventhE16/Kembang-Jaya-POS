@@ -231,7 +231,8 @@ class ReportDetailScreen extends StatelessWidget {
                             },
                           ),
                           IconButton(
-                            icon: Icon(Icons.arrow_forward, color: context.colorPrimary),
+                            icon: Icon(Icons.receipt_long, color: context.colorPrimary),
+                            tooltip: 'Lihat Struk',
                             onPressed: () {
                               Navigator.pushNamed(context, '/struk', arguments: tx);
                             },
