@@ -437,7 +437,6 @@ class _StrukScreenState extends State<StrukScreen> {
                   controller: _screenshotController,
                   child: _buildStrukContent(transaction),
                 ),
-          ),
         ),
       ),
     );
