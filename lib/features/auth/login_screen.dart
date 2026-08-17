@@ -252,7 +252,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ),
-                ),
+                  ), // Closing AutofillGroup
+                ), // Closing Container
                 const SizedBox(height: 40),
               ],
             ),
