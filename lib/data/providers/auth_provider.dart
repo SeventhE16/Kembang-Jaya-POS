@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/store_context.dart';
 import '../models/user_model.dart';
@@ -45,6 +46,21 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     if (_firebaseUser != null) {
+      final prefs = await SharedPreferences.getInstance();
+      final lastLoginStr = prefs.getString('last_login_time');
+      if (lastLoginStr != null) {
+        final lastLogin = DateTime.parse(lastLoginStr);
+        if (DateTime.now().difference(lastLogin).inHours >= 24) {
+          debugPrint('Session expired (24h). Forcing logout.');
+          await prefs.remove('last_login_time');
+          await _authService.logout();
+          return;
+        }
+      } else {
+        // Set it for existing sessions so they expire in 24 hours from first open after update
+        await prefs.setString('last_login_time', DateTime.now().toIso8601String());
+      }
+
       _userModel = await _authService.getUserModel(_firebaseUser!.uid);
       _isLoadingUser = false;
       if (_userModel != null) {
@@ -76,6 +92,10 @@ class AuthProvider extends ChangeNotifier {
       await _authService.logout();
       throw Exception('Akun belum dibuat atau telah dihapus. Hubungi administrator.');
     }
+    
+    // Save last login time
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('last_login_time', DateTime.now().toIso8601String());
   }
 
   Future<void> register(String email, String password, {String name = ''}) async {
@@ -103,6 +123,8 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('last_login_time');
     await _authService.logout();
   }
   

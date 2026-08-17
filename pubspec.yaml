@@ -52,6 +52,7 @@ dependencies:
   image: ^4.9.1
   http: ^1.6.0
   image_gallery_saver_plus: ^5.1.1
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:

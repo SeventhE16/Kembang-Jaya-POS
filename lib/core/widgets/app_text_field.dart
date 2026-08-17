@@ -15,6 +15,7 @@ class AppTextField extends StatelessWidget {
   final VoidCallback? onTap;
   final ValueChanged<String>? onChanged;
   final List<TextInputFormatter>? inputFormatters;
+  final Iterable<String>? autofillHints;
 
   const AppTextField({
     super.key,
@@ -30,6 +31,7 @@ class AppTextField extends StatelessWidget {
     this.onTap,
     this.onChanged,
     this.inputFormatters,
+    this.autofillHints,
   });
 
   @override
@@ -58,6 +60,7 @@ class AppTextField extends StatelessWidget {
           onTap: onTap,
           onChanged: onChanged,
           inputFormatters: inputFormatters,
+          autofillHints: autofillHints,
           style: TextStyle(color: context.colorTextPrimary),
           decoration: InputDecoration(
             hintText: hint,

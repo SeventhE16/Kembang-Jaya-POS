@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../core/constants/app_assets.dart';
 import '../../core/constants/app_routes.dart';
@@ -20,6 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
   @override
   void initState() {
@@ -48,6 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
       await authProvider.login(email, password);
       
       if (!mounted) return;
+      TextInput.finishAutofillContext(); // Inform OS to save the credentials
       Navigator.pushReplacementNamed(context, AppRoutes.sync);
     } catch (e) {
       if (!mounted) return;
@@ -170,22 +173,36 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ),
-                  child: Column(
-                    children: [
+                  child: AutofillGroup(
+                    child: Column(
+                      children: [
                       AppTextField(
                         label: 'Email',
                         hint: 'Masukkan email Anda',
                         controller: _emailController,
                         prefix: const Icon(Icons.email_outlined),
                         keyboardType: TextInputType.emailAddress,
+                        autofillHints: const [AutofillHints.email],
                       ),
                       const SizedBox(height: AppDimensions.spacingMD),
                       AppTextField(
                         label: 'Password',
                         hint: 'Masukkan password Anda',
                         controller: _passwordController,
-                        obscureText: true,
+                        obscureText: _obscurePassword,
                         prefix: const Icon(Icons.lock_outline),
+                        autofillHints: const [AutofillHints.password],
+                        suffix: IconButton(
+                          icon: Icon(
+                            _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                            color: context.colorTextSecondary,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                        ),
                       ),
                       const SizedBox(height: AppDimensions.spacingMD),
                       Align(
