@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../data/models/user_model.dart';
+import '../utils/firebase_error_handler.dart';
 
 class AuthService {
   final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
@@ -14,7 +15,7 @@ class AuthService {
     try {
       return await _auth.signInWithEmailAndPassword(email: email, password: password);
     } catch (e) {
-      rethrow;
+      throw Exception(FirebaseErrorHandler.getMessage(e));
     }
   }
 
@@ -39,7 +40,7 @@ class AuthService {
     try {
       return await _auth.createUserWithEmailAndPassword(email: email, password: password);
     } catch (e) {
-      rethrow;
+      throw Exception(FirebaseErrorHandler.getMessage(e));
     }
   }
 
@@ -72,7 +73,7 @@ class AuthService {
       await tempApp.delete();
     } catch (e) {
       print('Error registering staff: $e');
-      rethrow;
+      throw Exception(FirebaseErrorHandler.getMessage(e));
     }
   }
 
@@ -80,7 +81,7 @@ class AuthService {
     try {
       await _auth.signOut();
     } catch (e) {
-      rethrow;
+      throw Exception(FirebaseErrorHandler.getMessage(e));
     }
   }
 
@@ -88,7 +89,7 @@ class AuthService {
     try {
       await _auth.sendPasswordResetEmail(email: email);
     } catch (e) {
-      rethrow;
+      throw Exception(FirebaseErrorHandler.getMessage(e));
     }
   }
 
@@ -100,7 +101,7 @@ class AuthService {
         throw Exception("User not logged in");
       }
     } catch (e) {
-      rethrow;
+      throw Exception(FirebaseErrorHandler.getMessage(e));
     }
   }
 }
