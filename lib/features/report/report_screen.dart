@@ -9,6 +9,7 @@ import '../../data/models/transaction_model.dart';
 import '../../data/providers/transaction_provider.dart';
 import '../../data/providers/mutation_provider.dart';
 import 'package:depot_kayu_app/core/extensions/context_colors.dart';
+import 'widgets/transaction_list_item.dart';
 
 class ReportScreen extends StatefulWidget {
   const ReportScreen({super.key});
@@ -446,8 +447,11 @@ class _ReportScreenState extends State<ReportScreen> {
 
         const SizedBox(height: 16),
 
-        // List per period
-        ...aggregated.reversed.map((item) => _buildSalesListItem(item, transactions)),
+        // List per period (atau list detail untuk hari ini)
+        if (_periodIndex == 0)
+          ...transactions.map((tx) => TransactionListItem(tx: tx))
+        else
+          ...aggregated.reversed.map((item) => _buildSalesListItem(item, transactions)),
       ],
     );
   }
@@ -506,8 +510,11 @@ class _ReportScreenState extends State<ReportScreen> {
 
         const SizedBox(height: 16),
 
-        // List per period
-        ...aggregated.reversed.map((item) => _buildPurchaseListItem(item, transactions)),
+        // List per period (atau list detail untuk hari ini)
+        if (_periodIndex == 0)
+          ...transactions.map((tx) => TransactionListItem(tx: tx, isPurchase: true))
+        else
+          ...aggregated.reversed.map((item) => _buildPurchaseListItem(item, transactions)),
       ],
     );
   }
