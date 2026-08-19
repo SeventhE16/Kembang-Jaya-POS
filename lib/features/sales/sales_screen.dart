@@ -90,12 +90,24 @@ class _SalesScreenState extends State<SalesScreen> {
           'Penjualan',
           style: Theme.of(context).textTheme.titleLarge,
         ),
-        leading: Builder(
-          builder: (ctx) => IconButton(
-            icon: const Icon(Icons.menu, size: 26),
-            onPressed: () => Scaffold.of(ctx).openDrawer(),
-          ),
-        ),
+        leading: cartProvider.editingTransactionId != null
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back, size: 26),
+                onPressed: () {
+                  cartProvider.clearCart();
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    AppRoutes.report,
+                    (route) => false,
+                  );
+                },
+              )
+            : Builder(
+                builder: (ctx) => IconButton(
+                  icon: const Icon(Icons.menu, size: 26),
+                  onPressed: () => Scaffold.of(ctx).openDrawer(),
+                ),
+              ),
       ),
       body: SafeArea(
         top: false,
