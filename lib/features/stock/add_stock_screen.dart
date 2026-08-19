@@ -28,7 +28,8 @@ class _AddStockScreenState extends State<AddStockScreen> {
       final matchesCategory =
           _selectedCategory == 'Semua' || p.category == _selectedCategory;
       final matchesSearch = _searchQuery.isEmpty ||
-          p.name.toLowerCase().contains(_searchQuery.toLowerCase());
+          p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          p.code.toLowerCase().contains(_searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     }).toList();
   }
@@ -100,7 +101,7 @@ class _AddStockScreenState extends State<AddStockScreen> {
                       controller: _searchController,
                       onChanged: (value) => setState(() => _searchQuery = value),
                       decoration: const InputDecoration(
-                        hintText: 'Cari Nama atau kode barang',
+                        hintText: 'Cari nama atau kode barang',
                         prefixIcon: Icon(Icons.search),
                       ),
                     ),

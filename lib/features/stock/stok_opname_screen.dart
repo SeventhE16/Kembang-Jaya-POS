@@ -92,7 +92,7 @@ class _StokOpnameScreenState extends State<StokOpnameScreen> {
     final products = Provider.of<ProductProvider>(context).products;
     final cashierName = Provider.of<AuthProvider>(context).user?.displayName ?? 'Kasir';
     final trackableProducts = products.where((p) => p.trackStock).toList();
-    final filteredProducts = trackableProducts.where((p) => p.name.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+    final filteredProducts = trackableProducts.where((p) => p.name.toLowerCase().contains(_searchQuery.toLowerCase()) || p.code.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
 
     return Scaffold(
       drawer: const AppDrawer(currentRoute: AppRoutes.stokOpname),
@@ -129,7 +129,7 @@ class _StokOpnameScreenState extends State<StokOpnameScreen> {
                     controller: _searchController,
                     onChanged: (val) => setState(() => _searchQuery = val),
                     decoration: InputDecoration(
-                      hintText: 'Cari nama barang...',
+                      hintText: 'Cari nama barang atau kode...',
                       prefixIcon: Icon(Icons.search, color: context.colorPrimary),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
