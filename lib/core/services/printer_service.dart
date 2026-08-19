@@ -154,19 +154,36 @@ class PrinterService {
     bluetooth.printCustom("--------------------------------", 1, 1);
 
     // Items
+    double totalSavings = 0;
     for (var item in t.items) {
       final name = item.product.name.replaceAll(RegExp(r'\s*Grade.*', caseSensitive: false), '');
       final qty = item.quantity;
       final price = item.unitPrice;
       final total = item.subtotal;
+      final itemDiscount = item.itemDiscount * qty;
+      totalSavings += itemDiscount;
       
       final displayName = name.length > 32 ? '${name.substring(0, 32)}...' : name;
       bluetooth.printCustom(displayName, 2, 0);
-      bluetooth.printLeftRight(
-        "$qty ${item.product.unit} x ${_formatRupiah(price)}", 
-        "${_formatRupiah(total)}", 
-        1,
-      );
+      
+      if (item.itemDiscount > 0) {
+        bluetooth.printLeftRight(
+          "$qty ${item.product.unit} x ${_formatRupiah(price)}", 
+          "", 
+          1,
+        );
+        bluetooth.printLeftRight(
+          "  Diskon (-${_formatRupiah(itemDiscount)})", 
+          "${_formatRupiah(total)}", 
+          1,
+        );
+      } else {
+        bluetooth.printLeftRight(
+          "$qty ${item.product.unit} x ${_formatRupiah(price)}", 
+          "${_formatRupiah(total)}", 
+          1,
+        );
+      }
     }
     
     bluetooth.printCustom("--------------------------------", 1, 1);
@@ -174,9 +191,11 @@ class PrinterService {
     // Totals
     bluetooth.printLeftRight("Subtotal", "${_formatRupiah(t.subtotal)}", 1);
     if (t.discount != null) {
-      bluetooth.printLeftRight("Diskon (${t.discount.name})", "-${_formatRupiah(t.discount.value)}", 1);
+      totalSavings += t.discount!.value;
+      bluetooth.printLeftRight("Diskon (${t.discount!.name})", "-${_formatRupiah(t.discount!.value)}", 1);
     }
     if (t.extraDiscount > 0) {
+      totalSavings += t.extraDiscount;
       bluetooth.printLeftRight("Diskon Tambahan", "-${_formatRupiah(t.extraDiscount)}", 1);
     }
     if (t.fee != null) {
@@ -199,6 +218,10 @@ class PrinterService {
       if (change > 0) {
         bluetooth.printLeftRight("Kembali", "${_formatRupiah(change)}", 1);
       }
+    }
+
+    if (totalSavings > 0) {
+      bluetooth.printLeftRight("Anda Hemat", "${_formatRupiah(totalSavings)}", 1);
     }
     
     bluetooth.printCustom("--------------------------------", 1, 1);

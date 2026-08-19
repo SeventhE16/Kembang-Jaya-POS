@@ -185,15 +185,33 @@ class _StrukScreenState extends State<StrukScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '${item.quantity} x ${_currencyFormat.format(item.unitPrice - item.itemDiscount)}',
+                        '${item.quantity} x ${_currencyFormat.format(item.unitPrice)}',
                         style: const TextStyle(fontSize: 13),
                       ),
-                      Text(
-                        _currencyFormat.format(item.subtotal),
-                        style: const TextStyle(fontSize: 13),
-                      ),
+                      if (item.itemDiscount == 0)
+                        Text(
+                          _currencyFormat.format(item.subtotal),
+                          style: const TextStyle(fontSize: 13),
+                        ),
                     ],
                   ),
+                  if (item.itemDiscount > 0)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 16),
+                          child: Text(
+                            'Diskon (${_currencyFormat.format(item.itemDiscount * item.quantity)})',
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        ),
+                        Text(
+                          _currencyFormat.format(item.subtotal),
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                      ],
+                    ),
                 ],
               ),
             ));
@@ -275,6 +293,25 @@ class _StrukScreenState extends State<StrukScreen> {
               Text(_currencyFormat.format(transaction.payAmount),
                   style: const TextStyle(fontSize: 13)),
             ],
+          ),
+          Builder(
+            builder: (context) {
+              double totalItemDiscount = transaction.cart.values.fold(0.0, (sum, item) => sum + (item.itemDiscount * item.quantity));
+              double totalSavings = totalItemDiscount + transaction.extraDiscount + (transaction.discount?.value ?? 0);
+              if (totalSavings > 0) {
+                return Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Anda Hemat', style: TextStyle(fontSize: 13)),
+                      Text(_currencyFormat.format(totalSavings), style: const TextStyle(fontSize: 13)),
+                    ],
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
           ),
 
           if (transaction.debtAmount > 0)

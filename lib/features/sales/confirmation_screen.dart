@@ -75,7 +75,16 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
   Widget _buildStrukContent(Transaction? transaction) {
     final cart = transaction?.items ?? [];
     final subtotal = transaction?.subtotal ?? 0;
-    final discount = transaction?.extraDiscount ?? 0;
+    
+    double totalItemDiscount = 0;
+    if (transaction != null) {
+      for (var item in transaction.items) {
+        totalItemDiscount += item.itemDiscount * item.quantity;
+      }
+    }
+    final discount = (transaction?.extraDiscount ?? 0) + (transaction?.discount?.value ?? 0);
+    final totalSavings = discount + totalItemDiscount;
+    
     final fee = (transaction?.extraFee ?? 0) + (transaction?.fee?.value ?? 0);
     final feeName = transaction?.fee?.name ?? 'Biaya';
     final total = transaction?.total ?? 0;
@@ -186,9 +195,21 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text('${item.quantity} x ${_currencyFormat.format(item.unitPrice)}', style: const TextStyle(fontSize: 13, color: Colors.black)),
-                      Text(_currencyFormat.format(item.subtotal), style: const TextStyle(fontSize: 13, color: Colors.black)),
+                      if (item.itemDiscount == 0)
+                        Text(_currencyFormat.format(item.subtotal), style: const TextStyle(fontSize: 13, color: Colors.black)),
                     ],
                   ),
+                  if (item.itemDiscount > 0)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 16),
+                          child: Text('Diskon (${_currencyFormat.format(item.itemDiscount * item.quantity)})', style: const TextStyle(fontSize: 13, color: Colors.black)),
+                        ),
+                        Text(_currencyFormat.format(item.subtotal), style: const TextStyle(fontSize: 13, color: Colors.black)),
+                      ],
+                    ),
                 ],
               ),
             ));
@@ -238,12 +259,12 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
               ],
             ),
           ],
-          if (discount > 0)
+          if (totalSavings > 0)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text('Anda Hemat', style: TextStyle(fontSize: 13, color: Colors.black)),
-                Text(_currencyFormat.format(discount), style: const TextStyle(fontSize: 13, color: Colors.black)),
+                Text(_currencyFormat.format(totalSavings), style: const TextStyle(fontSize: 13, color: Colors.black)),
               ],
             ),
           const SizedBox(height: 8),
