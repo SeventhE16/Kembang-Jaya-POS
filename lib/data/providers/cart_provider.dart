@@ -29,6 +29,12 @@ class CartProvider extends ChangeNotifier {
 
   StreamSubscription? _storeSub;
 
+  // --- Edit Mode State ---
+  /// ID transaksi yang sedang diedit. Null jika membuat transaksi baru.
+  String? editingTransactionId;
+  /// Snapshot transaksi asli sebelum diedit (untuk rekonsiliasi stok & kasbon).
+  Transaction? editingTransactionOriginal;
+
   CartProvider() {
     _storeSub = StoreContext().storeIdStream.listen((storeId) {
       if (storeId == null) {
@@ -43,6 +49,32 @@ class CartProvider extends ChangeNotifier {
     super.dispose();
   }
 
+  /// Muat data dari transaksi yang sudah ada ke dalam keranjang untuk diedit.
+  void loadTransaction(Transaction tx) {
+    clearCart();
+    editingTransactionId = tx.id;
+    editingTransactionOriginal = tx;
+
+    // Muat semua item ke keranjang
+    for (var item in tx.items) {
+      _activeCart[item.product.id] = CartItem(
+        product: item.product,
+        quantity: item.quantity,
+        customPrice: item.customPrice,
+        itemDiscount: item.itemDiscount,
+        note: item.note,
+        cogs: item.cogs,
+      );
+    }
+
+    // Muat diskon, biaya, dan catatan
+    _activeDiscount = tx.discount;
+    _activeExtraDiscount = tx.extraDiscount;
+    _activeFee = tx.fee;
+    _activeExtraFee = tx.extraFee;
+
+    notifyListeners();
+  }
 
   void addItem(CartItem item) {
     if (_activeCart.containsKey(item.product.id)) {
@@ -146,7 +178,9 @@ class CartProvider extends ChangeNotifier {
     _activeExtraDiscount = 0;
     _activeFee = null;
     _activeExtraFee = 0;
+    // Reset edit mode
+    editingTransactionId = null;
+    editingTransactionOriginal = null;
     notifyListeners();
   }
 }
-

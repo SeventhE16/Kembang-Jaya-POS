@@ -39,24 +39,28 @@ class _StrukScreenState extends State<StrukScreen> {
     final storePhone = (settings as dynamic)?.phone ?? '';
     final logoUrl = (settings as dynamic)?.logoUrl;
 
-    return Container(
-      width: 320,
-      padding: const EdgeInsets.all(AppDimensions.spacingMD),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 5)),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Logo
-          if (logoUrl != null && logoUrl.isNotEmpty)
-            AppLogo(logoUrl: logoUrl, height: 60, width: 60)
-          else
-            Icon(Icons.store, size: 60, color: context.colorTextPrimary),
+    return Theme(
+      data: ThemeData.light(), // Force light theme so text is black on white bg
+      child: Container(
+        width: 320,
+        padding: const EdgeInsets.all(AppDimensions.spacingMD),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: const [
+            BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 5)),
+          ],
+        ),
+        child: DefaultTextStyle.merge(
+          style: const TextStyle(color: Colors.black87), // Ensure default text is dark
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Logo
+              if (logoUrl != null && logoUrl.isNotEmpty)
+                AppLogo(logoUrl: logoUrl, height: 60, width: 60)
+              else
+                const Icon(Icons.store, size: 60, color: Colors.black87),
 
           const SizedBox(height: AppDimensions.spacingSM),
 
@@ -75,7 +79,7 @@ class _StrukScreenState extends State<StrukScreen> {
                 if (storeAddress.isNotEmpty) storeAddress,
                 if (storePhone.isNotEmpty) 'Telp: $storePhone',
               ].join('\n'),
-              style: TextStyle(fontSize: 12, color: context.colorTextSecondary),
+              style: const TextStyle(fontSize: 12, color: Colors.black54),
               textAlign: TextAlign.center,
             ),
 
@@ -296,7 +300,7 @@ class _StrukScreenState extends State<StrukScreen> {
           ),
           Builder(
             builder: (context) {
-              double totalItemDiscount = transaction.cart.values.fold(0.0, (sum, item) => sum + (item.itemDiscount * item.quantity));
+              double totalItemDiscount = transaction.items.fold(0.0, (sum, item) => sum + (item.itemDiscount * item.quantity));
               double totalSavings = totalItemDiscount + transaction.extraDiscount + (transaction.discount?.value ?? 0);
               if (totalSavings > 0) {
                 return Padding(
@@ -320,13 +324,11 @@ class _StrukScreenState extends State<StrukScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Sisa Hutang',
-                      style:
-                          TextStyle(fontSize: 13, color: context.colorError)),
+                  const Text('Sisa Hutang',
+                      style: TextStyle(fontSize: 13, color: Colors.red)),
                   Text(
                     _currencyFormat.format(transaction.debtAmount),
-                    style: TextStyle(
-                        fontSize: 13, color: context.colorError),
+                    style: const TextStyle(fontSize: 13, color: Colors.red),
                   ),
                 ],
               ),
@@ -340,12 +342,11 @@ class _StrukScreenState extends State<StrukScreen> {
           Text(
             'Terimakasih telah berbelanja di Depot Kayu\nKembang Jaya',
             textAlign: TextAlign.center,
-            style:
-                TextStyle(fontSize: 12, color: context.colorTextSecondary),
+            style: const TextStyle(fontSize: 12, color: Colors.black54),
           ),
         ],
       ),
-    );
+    )));
   }
 
   Future<void> _downloadReceipt(Transaction transaction) async {

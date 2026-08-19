@@ -38,6 +38,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
   final List<String> _methods = ['Tunai', 'QRIS', 'Transfer'];
   bool _isPiutang = false;
 
+  /// Apakah saat ini sedang dalam mode edit transaksi
+  bool get _isEditMode => _cart.editingTransactionId != null;
+
+  /// Total uang yang sudah dibayar customer (DP awal + semua cicilan) untuk transaksi kasbon
+  double get _totalAlreadyPaid {
+    final oldTx = _cart.editingTransactionOriginal;
+    if (oldTx == null) return 0;
+    // payAmount di transaksi kasbon sudah termasuk DP + cicilan yang telah dibayar
+    return oldTx.payAmount;
+  }
+
   double get _subtotal {
     return _cart.activeCart.values.fold(0.0, (sum, item) => sum + item.subtotal);
   }
@@ -333,53 +344,117 @@ class _PaymentScreenState extends State<PaymentScreen> {
       showStatusSnackBar(context, message: 'Piutang/Kasbon wajib memilih Pelanggan', type: SnackbarType.error);
       return;
     }
-    
-    // Save transaction info
-    final debt = _isPiutang ? (_totalToPay - _payAmount) : 0.0;
-    
-    final transaction = Transaction(
-      id: 'TRX-${DateTime.now().millisecondsSinceEpoch}',
-      items: _cart.activeCart.values.toList(),
-      customerName: _cart.activeCustomer?.name,
-      cashierName: 'Admin',
-      subtotal: _subtotal,
-      discount: _cart.activeDiscount,
-      extraDiscount: _cart.activeExtraDiscount,
-      fee: _cart.activeFee,
-      extraFee: _cart.activeExtraFee,
-      total: _totalToPay,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      paymentMethod: _isPiutang ? 'Kasbon' : _paymentMethod,
-      payAmount: _payAmount,
-      debtAmount: debt < 0 ? 0 : debt,
-      date: DateTime.now(),
-    );
 
     final currentCtx = context;
     final transactionProv = Provider.of<TransactionProvider>(context, listen: false);
     final auditProv = Provider.of<AuditProvider>(context, listen: false);
 
-    await transactionProv.addTransaction(transaction);
-    // Catat di Audit Log
-    await auditProv.logAction('Transaksi Baru', 'Kasir Admin menerima pembayaran Rp${transaction.total} via ${transaction.paymentMethod}');
+    if (_isEditMode) {
+      // ===== MODE EDIT =====
+      final oldTx = _cart.editingTransactionOriginal!;
+      final editingId = _cart.editingTransactionId!;
 
-    if (!currentCtx.mounted) return;
-    Navigator.pushReplacementNamed(currentCtx, AppRoutes.confirmation, arguments: transaction);
+      final debt = _isPiutang ? (_totalToPay - _payAmount).clamp(0.0, double.infinity) : 0.0;
+      final newTx = Transaction(
+        id: editingId,
+        invoiceNumber: oldTx.invoiceNumber, // Pertahankan nomor nota asli
+        type: oldTx.type,
+        items: _cart.activeCart.values.toList(),
+        customerName: _cart.activeCustomer?.name ?? oldTx.customerName,
+        cashierName: oldTx.cashierName,
+        subtotal: _subtotal,
+        discount: _cart.activeDiscount,
+        extraDiscount: _cart.activeExtraDiscount,
+        fee: _cart.activeFee,
+        extraFee: _cart.activeExtraFee,
+        total: _totalToPay,
+        createdAt: oldTx.createdAt,
+        updatedAt: DateTime.now(),
+        paymentMethod: _isPiutang ? 'Kasbon' : _paymentMethod,
+        payAmount: _payAmount,
+        debtAmount: debt,
+        date: oldTx.date, // Pertahankan tanggal asli
+      );
+
+      final finalTx = await transactionProv.updateTransactionWithReconciliation(
+        oldTx: oldTx,
+        newTx: newTx,
+        totalAlreadyPaid: _totalAlreadyPaid,
+      );
+
+      await auditProv.logAction('Edit Transaksi', 'Edit nota ${oldTx.invoiceNumber ?? oldTx.id}: total baru Rp${finalTx.total}');
+
+      if (!currentCtx.mounted) return;
+      Navigator.pushReplacementNamed(currentCtx, AppRoutes.confirmation, arguments: finalTx);
+    } else {
+      // ===== TRANSAKSI BARU =====
+      final debt = _isPiutang ? (_totalToPay - _payAmount) : 0.0;
+
+      final transaction = Transaction(
+        id: 'TRX-${DateTime.now().millisecondsSinceEpoch}',
+        items: _cart.activeCart.values.toList(),
+        customerName: _cart.activeCustomer?.name,
+        cashierName: 'Admin',
+        subtotal: _subtotal,
+        discount: _cart.activeDiscount,
+        extraDiscount: _cart.activeExtraDiscount,
+        fee: _cart.activeFee,
+        extraFee: _cart.activeExtraFee,
+        total: _totalToPay,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        paymentMethod: _isPiutang ? 'Kasbon' : _paymentMethod,
+        payAmount: _payAmount,
+        debtAmount: debt < 0 ? 0 : debt,
+        date: DateTime.now(),
+      );
+
+      await transactionProv.addTransaction(transaction);
+      await auditProv.logAction('Transaksi Baru', 'Kasir Admin menerima pembayaran Rp${transaction.total} via ${transaction.paymentMethod}');
+
+      if (!currentCtx.mounted) return;
+      Navigator.pushReplacementNamed(currentCtx, AppRoutes.confirmation, arguments: transaction);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final bool canPay = _isPiutang || _payAmount >= _totalToPay;
+    final bool isEdit = _isEditMode;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Nominal Pembayaran', style: Theme.of(context).textTheme.titleLarge),
+        title: Text(
+          isEdit ? 'Edit Transaksi - Pembayaran' : 'Nominal Pembayaran',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
       ),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Column(
           children: [
+            // Banner Mode Edit
+            if (isEdit)
+              Container(
+                width: double.infinity,
+                color: context.colorPrimary.withValues(alpha: 0.12),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    Icon(Icons.edit_outlined, size: 16, color: context.colorPrimary),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Mode Edit — Nota: ${_cart.editingTransactionOriginal?.invoiceNumber ?? _cart.editingTransactionId}'
+                        + (_totalAlreadyPaid > 0
+                            ? '  |  Sudah dibayar: ${_currencyFormat.format(_totalAlreadyPaid)}'
+                            : ''),
+                        style: TextStyle(fontSize: 12, color: context.colorPrimary, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(AppDimensions.spacingMD),

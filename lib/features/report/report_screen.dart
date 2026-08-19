@@ -140,8 +140,8 @@ class _ReportScreenState extends State<ReportScreen> {
 
   String _labelForDate(DateTime date) {
     switch (_periodIndex) {
-      case 0: // Hari Ini — group by hour
-        return '${date.hour.toString().padLeft(2, '0')}:00';
+      case 0: // Hari Ini — group into one single entry
+        return 'Hari Ini';
       case 1: // Bulan Ini — group by day
         return date.day.toString();
       case 2: // Tahun Ini — group by month name

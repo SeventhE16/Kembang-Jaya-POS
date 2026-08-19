@@ -4,11 +4,13 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
+import '../../core/constants/app_routes.dart';
 import '../../core/widgets/status_dialog.dart';
 import '../../data/models/transaction_model.dart';
 import '../../data/providers/transaction_provider.dart';
 import '../../data/providers/product_provider.dart';
 import '../../data/providers/audit_provider.dart';
+import '../../data/providers/cart_provider.dart';
 import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class ReportDetailScreen extends StatelessWidget {
@@ -151,24 +153,7 @@ class ReportDetailScreen extends StatelessWidget {
                               ),
                             ],
                             const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Expanded(child: Text('No : ${tx.id}', style: TextStyle(fontSize: 12, color: context.colorTextSecondary))),
-                                IconButton(
-                                  icon: Icon(Icons.copy, size: 16, color: context.colorTextSecondary),
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                  onPressed: () {
-                                    Clipboard.setData(ClipboardData(text: tx.id));
-                                    showStatusSnackBar(
-                                      context,
-                                      message: 'Nomor transaksi disalin',
-                                      type: SnackbarType.success,
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
+                            Text('No : ${tx.id}', style: TextStyle(fontSize: 12, color: context.colorTextSecondary)),
                             if (tx.paymentMethod == 'Kasbon' && tx.debtAmount > 0)
                               Padding(
                                 padding: const EdgeInsets.only(top: 4),
@@ -185,6 +170,25 @@ class ReportDetailScreen extends StatelessWidget {
                       // Far right: Actions
                       Column(
                         children: [
+                          // Edit Button
+                          IconButton(
+                            icon: Icon(Icons.edit_outlined, color: context.colorPrimary),
+                            tooltip: 'Edit Transaksi',
+                            onPressed: () {
+                              final cartProv = Provider.of<CartProvider>(context, listen: false);
+                              cartProv.loadTransaction(tx);
+                              // Kembali ke Sales screen dengan keranjang yang sudah terisi
+                              Navigator.pushNamedAndRemoveUntil(
+                                context,
+                                AppRoutes.sales,
+                                (route) => false,
+                              );
+                              showStatusSnackBar(context,
+                                  message: 'Mode Edit: ubah item lalu lanjut ke Pembayaran',
+                                  type: SnackbarType.success);
+                            },
+                          ),
+                          // Delete Button
                           IconButton(
                             icon: Icon(Icons.close, color: context.colorError),
                             onPressed: () {

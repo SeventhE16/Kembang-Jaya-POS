@@ -130,6 +130,18 @@ class TransactionProvider extends ChangeNotifier {
     await _transactionService.updateTransaction(transaction);
   }
 
+  Future<Transaction> updateTransactionWithReconciliation({
+    required Transaction oldTx,
+    required Transaction newTx,
+    required double totalAlreadyPaid,
+  }) async {
+    return await _transactionService.updateTransactionWithReconciliation(
+      oldTx: oldTx,
+      newTx: newTx,
+      totalAlreadyPaid: totalAlreadyPaid,
+    );
+  }
+
   Future<void> deleteTransaction(String id) async {
     await _transactionService.deleteTransaction(id);
   }

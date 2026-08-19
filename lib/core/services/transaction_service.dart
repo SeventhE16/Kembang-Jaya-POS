@@ -131,6 +131,138 @@ class TransactionService {
     }
   }
 
+  /// Update transaksi dengan rekonsiliasi stok (revert stok lama, potong stok baru).
+  /// Juga menghitung ulang sisa hutang berdasarkan total uang yang sudah dibayar.
+  Future<Transaction> updateTransactionWithReconciliation({
+    required Transaction oldTx,
+    required Transaction newTx,
+    required double totalAlreadyPaid, // DP awal + total semua cicilan
+  }) async {
+    try {
+      final txRef = _firestore.collection('transactions').doc(oldTx.id);
+
+      // Hitung debtAmount baru berdasarkan uang yang sudah masuk
+      double newDebt = 0;
+      double finalPayAmount = totalAlreadyPaid;
+      String finalPaymentMethod = newTx.paymentMethod;
+
+      if (oldTx.paymentMethod == 'Kasbon') {
+        // Transaksi asal adalah kasbon - periksa apakah lunas setelah edit
+        if (newTx.total <= totalAlreadyPaid) {
+          // Lunas (atau lebih bayar)
+          newDebt = 0;
+          finalPayAmount = newTx.total; // Anggap bayar lunas
+          finalPaymentMethod = 'Kasbon'; // Pertahankan metode
+        } else {
+          // Masih kasbon, sesuaikan hutang
+          newDebt = newTx.total - totalAlreadyPaid;
+          finalPayAmount = totalAlreadyPaid;
+          finalPaymentMethod = 'Kasbon';
+        }
+      } else {
+        // Transaksi tunai/transfer - tidak ada hutang
+        newDebt = 0;
+        finalPayAmount = newTx.payAmount;
+      }
+
+      // Firestore transaction untuk atomicity
+      late Transaction finalTx;
+      await _firestore.runTransaction((ftx) async {
+        // 1. REVERT stok dari transaksi lama
+        for (var oldItem in oldTx.items) {
+          if (oldItem.product.category == 'Jasa') continue;
+          final productRef = _firestore.collection('products').doc(oldItem.product.id);
+          final productDoc = await ftx.get(productRef);
+          if (!productDoc.exists) continue;
+
+          final product = Product.fromJson(productDoc.data()!, productDoc.id);
+          List<StockBatch> batches = List.from(product.stockBatches);
+
+          // Kembalikan stok dengan menambahkan batch baru dari transaksi lama
+          batches.add(StockBatch(
+            id: 'revert_${oldTx.id}_${oldItem.product.id}',
+            quantity: oldItem.quantity,
+            basePrice: oldItem.cogs != null && oldItem.quantity > 0
+                ? (oldItem.cogs! / oldItem.quantity)
+                : oldItem.product.basePrice,
+            dateAdded: oldTx.date,
+          ));
+
+          ftx.update(productRef, {
+            'stock': FieldValue.increment(oldItem.quantity),
+            'stockBatches': batches.map((e) => e.toJson()).toList(),
+          });
+        }
+
+        // 2. POTONG stok dari transaksi baru (FIFO)
+        final List<CartItem> updatedItems = [];
+        for (var newItem in newTx.items) {
+          if (newItem.product.category == 'Jasa') {
+            updatedItems.add(newItem);
+            continue;
+          }
+          final productRef = _firestore.collection('products').doc(newItem.product.id);
+          final productDoc = await ftx.get(productRef);
+
+          CartItem finalItem = newItem;
+          if (productDoc.exists) {
+            final product = Product.fromJson(productDoc.data()!, productDoc.id);
+            List<StockBatch> batches = List.from(product.stockBatches);
+            batches.sort((a, b) => a.dateAdded.compareTo(b.dateAdded));
+
+            int remaining = newItem.quantity;
+            double totalCogs = 0;
+            for (int j = 0; j < batches.length; j++) {
+              if (remaining <= 0) break;
+              if (batches[j].quantity > 0) {
+                int take = remaining <= batches[j].quantity ? remaining : batches[j].quantity;
+                totalCogs += take * batches[j].basePrice;
+                batches[j].quantity -= take;
+                remaining -= take;
+              }
+            }
+            if (remaining > 0) {
+              totalCogs += remaining * product.basePrice;
+            }
+            batches.removeWhere((b) => b.quantity <= 0);
+
+            ftx.update(productRef, {
+              'stock': FieldValue.increment(-newItem.quantity),
+              'stockBatches': batches.map((e) => e.toJson()).toList(),
+            });
+
+            finalItem = CartItem(
+              product: newItem.product,
+              quantity: newItem.quantity,
+              customPrice: newItem.customPrice,
+              itemDiscount: newItem.itemDiscount,
+              note: newItem.note,
+              cogs: totalCogs,
+            );
+          }
+          updatedItems.add(finalItem);
+        }
+
+        // 3. Tulis ulang dokumen transaksi
+        finalTx = newTx.copyWith(
+          items: updatedItems,
+          payAmount: finalPayAmount,
+          debtAmount: newDebt,
+          paymentMethod: finalPaymentMethod,
+          updatedAt: DateTime.now(),
+        );
+
+        final data = finalTx.toJson();
+        data['storeId'] = StoreContext().storeId;
+        ftx.set(txRef, data);
+      });
+
+      return finalTx;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> updateTransaction(Transaction transaction) async {
     try {
       await _firestore.collection('transactions').doc(transaction.id).update(transaction.toJson());
