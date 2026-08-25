@@ -164,7 +164,7 @@ class PrinterService {
       totalSavings += itemDiscount;
       
       final displayName = name.length > 32 ? '${name.substring(0, 32)}...' : name;
-      bluetooth.printCustom(displayName, 2, 0);
+      bluetooth.printCustom(displayName, 1, 0); //
       
       if (item.itemDiscount > 0) {
         bluetooth.printLeftRight(
@@ -181,7 +181,7 @@ class PrinterService {
         bluetooth.printLeftRight(
           "$qty ${item.product.unit} x ${_formatRupiah(price)}", 
           "${_formatRupiah(total)}", 
-          1,
+          0,
         );
       }
     }
@@ -206,7 +206,7 @@ class PrinterService {
     }
     
     bluetooth.printCustom("--------------------------------", 1, 1);
-    bluetooth.printLeftRight("TOTAL", "${_formatRupiah(t.total)}", 2);
+    bluetooth.printLeftRight("TOTAL", "${_formatRupiah(t.total)}", 1); // nanti ganti jadi 1
     
     bluetooth.printCustom("--------------------------------", 1, 1);
     bluetooth.printLeftRight("Bayar (${t.paymentMethod})", "${_formatRupiah(t.payAmount)}", 1);

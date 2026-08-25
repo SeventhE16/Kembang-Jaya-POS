@@ -339,87 +339,100 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  bool _isLoading = false;
+
   Future<void> _processPayment() async {
     if (_isPiutang && _cart.activeCustomer == null) {
       showStatusSnackBar(context, message: 'Piutang/Kasbon wajib memilih Pelanggan', type: SnackbarType.error);
       return;
     }
 
-    final currentCtx = context;
-    final transactionProv = Provider.of<TransactionProvider>(context, listen: false);
-    final auditProv = Provider.of<AuditProvider>(context, listen: false);
+    setState(() => _isLoading = true);
 
-    if (_isEditMode) {
-      // ===== MODE EDIT =====
-      final oldTx = _cart.editingTransactionOriginal!;
-      final editingId = _cart.editingTransactionId!;
+    try {
+      final currentCtx = context;
+      final transactionProv = Provider.of<TransactionProvider>(context, listen: false);
+      final auditProv = Provider.of<AuditProvider>(context, listen: false);
 
-      final debt = _isPiutang ? (_totalToPay - _payAmount).clamp(0.0, double.infinity) : 0.0;
-      final newTx = Transaction(
-        id: editingId,
-        invoiceNumber: oldTx.invoiceNumber, // Pertahankan nomor nota asli
-        type: oldTx.type,
-        items: _cart.activeCart.values.toList(),
-        customerName: _cart.activeCustomer?.name ?? oldTx.customerName,
-        cashierName: oldTx.cashierName,
-        subtotal: _subtotal,
-        discount: _cart.activeDiscount,
-        extraDiscount: _cart.activeExtraDiscount,
-        fee: _cart.activeFee,
-        extraFee: _cart.activeExtraFee,
-        total: _totalToPay,
-        createdAt: oldTx.createdAt,
-        updatedAt: DateTime.now(),
-        paymentMethod: _isPiutang ? 'Kasbon' : _paymentMethod,
-        payAmount: _payAmount,
-        debtAmount: debt,
-        date: oldTx.date, // Pertahankan tanggal asli
-      );
+      if (_isEditMode) {
+        // ===== MODE EDIT =====
+        final oldTx = _cart.editingTransactionOriginal!;
+        final editingId = _cart.editingTransactionId!;
 
-      final finalTx = await transactionProv.updateTransactionWithReconciliation(
-        oldTx: oldTx,
-        newTx: newTx,
-        totalAlreadyPaid: _totalAlreadyPaid,
-      );
+        final debt = _isPiutang ? (_totalToPay - _payAmount).clamp(0.0, double.infinity) : 0.0;
+        final newTx = Transaction(
+          id: editingId,
+          invoiceNumber: oldTx.invoiceNumber, // Pertahankan nomor nota asli
+          type: oldTx.type,
+          items: _cart.activeCart.values.toList(),
+          customerName: _cart.activeCustomer?.name ?? oldTx.customerName,
+          cashierName: oldTx.cashierName,
+          subtotal: _subtotal,
+          discount: _cart.activeDiscount,
+          extraDiscount: _cart.activeExtraDiscount,
+          fee: _cart.activeFee,
+          extraFee: _cart.activeExtraFee,
+          total: _totalToPay,
+          createdAt: oldTx.createdAt,
+          updatedAt: DateTime.now(),
+          paymentMethod: _isPiutang ? 'Kasbon' : _paymentMethod,
+          payAmount: _payAmount,
+          debtAmount: debt,
+          date: oldTx.date, // Pertahankan tanggal asli
+        );
 
-      await auditProv.logAction('Edit Transaksi', 'Edit nota ${oldTx.invoiceNumber ?? oldTx.id}: total baru Rp${finalTx.total}');
+        final finalTx = await transactionProv.updateTransactionWithReconciliation(
+          oldTx: oldTx,
+          newTx: newTx,
+          totalAlreadyPaid: _totalAlreadyPaid,
+        );
 
-      if (!currentCtx.mounted) return;
-      Navigator.pushReplacementNamed(currentCtx, AppRoutes.confirmation, arguments: finalTx);
-    } else {
-      // ===== TRANSAKSI BARU =====
-      final debt = _isPiutang ? (_totalToPay - _payAmount) : 0.0;
+        await auditProv.logAction('Edit Transaksi', 'Edit nota ${oldTx.invoiceNumber ?? oldTx.id}: total baru Rp${finalTx.total}');
 
-      final transaction = Transaction(
-        id: 'TRX-${DateTime.now().millisecondsSinceEpoch}',
-        items: _cart.activeCart.values.toList(),
-        customerName: _cart.activeCustomer?.name,
-        cashierName: 'Admin',
-        subtotal: _subtotal,
-        discount: _cart.activeDiscount,
-        extraDiscount: _cart.activeExtraDiscount,
-        fee: _cart.activeFee,
-        extraFee: _cart.activeExtraFee,
-        total: _totalToPay,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-        paymentMethod: _isPiutang ? 'Kasbon' : _paymentMethod,
-        payAmount: _payAmount,
-        debtAmount: debt < 0 ? 0 : debt,
-        date: DateTime.now(),
-      );
+        if (!currentCtx.mounted) return;
+        Navigator.pushReplacementNamed(currentCtx, AppRoutes.confirmation, arguments: finalTx);
+      } else {
+        // ===== TRANSAKSI BARU =====
+        final debt = _isPiutang ? (_totalToPay - _payAmount) : 0.0;
 
-      await transactionProv.addTransaction(transaction);
-      await auditProv.logAction('Transaksi Baru', 'Kasir Admin menerima pembayaran Rp${transaction.total} via ${transaction.paymentMethod}');
+        final transaction = Transaction(
+          id: 'TRX-${DateTime.now().millisecondsSinceEpoch}',
+          items: _cart.activeCart.values.toList(),
+          customerName: _cart.activeCustomer?.name,
+          cashierName: 'Admin',
+          subtotal: _subtotal,
+          discount: _cart.activeDiscount,
+          extraDiscount: _cart.activeExtraDiscount,
+          fee: _cart.activeFee,
+          extraFee: _cart.activeExtraFee,
+          total: _totalToPay,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          paymentMethod: _isPiutang ? 'Kasbon' : _paymentMethod,
+          payAmount: _payAmount,
+          debtAmount: debt < 0 ? 0 : debt,
+          date: DateTime.now(),
+        );
 
-      if (!currentCtx.mounted) return;
-      Navigator.pushReplacementNamed(currentCtx, AppRoutes.confirmation, arguments: transaction);
+        await transactionProv.addTransaction(transaction);
+        await auditProv.logAction('Transaksi Baru', 'Kasir Admin menerima pembayaran Rp${transaction.total} via ${transaction.paymentMethod}');
+
+        if (!currentCtx.mounted) return;
+        Navigator.pushReplacementNamed(currentCtx, AppRoutes.confirmation, arguments: transaction);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        showStatusSnackBar(context, message: 'Gagal memproses pembayaran: $e', type: SnackbarType.error);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool canPay = _isPiutang || _payAmount >= _totalToPay;
+    // Di mode edit, jika uang yang sudah masuk sebelumnya (totalAlreadyPaid) 
+    // sudah menutupi total tagihan baru, maka bisa langsung dibayar.
+    final bool canPay = (_isPiutang || _payAmount >= _totalToPay || (_isEditMode && _totalAlreadyPaid >= _totalToPay)) && !_isLoading;
     final bool isEdit = _isEditMode;
 
     return Scaffold(
