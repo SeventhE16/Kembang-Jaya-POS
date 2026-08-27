@@ -10,6 +10,7 @@ import '../../data/providers/product_provider.dart';
 import '../../data/providers/cart_provider.dart';
 import '../../data/models/product_model.dart';
 import '../../data/models/transaction_model.dart';
+import '../../data/providers/transaction_provider.dart';
 
 class SalesScreen extends StatefulWidget {
   const SalesScreen({super.key});
@@ -22,10 +23,72 @@ class _SalesScreenState extends State<SalesScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedCategory = 'Semua';
   String _searchQuery = '';
+  static bool _hasShownDueNotification = false;
 
   @override
   void initState() {
     super.initState();
+    if (!_hasShownDueNotification) {
+      _hasShownDueNotification = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _checkDueDates();
+      });
+    }
+  }
+
+  void _checkDueDates() {
+    final txProv = Provider.of<TransactionProvider>(context, listen: false);
+    
+    if (txProv.isLoading) {
+      txProv.addListener(_onTxLoaded);
+    } else {
+      _showDueAlertIfNeeded(txProv.transactions);
+    }
+  }
+
+  void _onTxLoaded() {
+    final txProv = Provider.of<TransactionProvider>(context, listen: false);
+    if (!txProv.isLoading) {
+      txProv.removeListener(_onTxLoaded);
+      _showDueAlertIfNeeded(txProv.transactions);
+    }
+  }
+
+  void _showDueAlertIfNeeded(List<Transaction> transactions) {
+     final now = DateTime.now();
+     final today = DateTime(now.year, now.month, now.day);
+     
+     int piutangDueCount = 0;
+     int hutangDueCount = 0;
+
+     for (var tx in transactions) {
+       if (tx.debtAmount > 0 && tx.dueDate != null) {
+         final due = DateTime(tx.dueDate!.year, tx.dueDate!.month, tx.dueDate!.day);
+         final difference = due.difference(today).inDays;
+         
+         // Notifikasi hanya pada H-7, H-3, dan H-0 (Hari Ini)
+         if (difference == 7 || difference == 3 || difference == 0) {
+            if (tx.type == 'sale') {
+               piutangDueCount++;
+            } else {
+               hutangDueCount++;
+            }
+         }
+       }
+     }
+
+     if (piutangDueCount > 0 || hutangDueCount > 0) {
+        showDialog(
+           context: context,
+           builder: (ctx) => AlertDialog(
+              title: const Text('Peringatan Jatuh Tempo'),
+              content: Text('Terdapat $piutangDueCount Piutang pelanggan dan $hutangDueCount Hutang supplier yang jatuh tempo dalam waktu dekat (H-7/H-3) atau HARI INI!'),
+              actions: [
+                 TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Tutup'))
+              ],
+           )
+        );
+     }
   }
 
   List<Product> _getFilteredProducts(List<Product> allProducts) {

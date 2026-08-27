@@ -36,6 +36,7 @@ class _RestockPaymentScreenState extends State<RestockPaymentScreen> {
   String _paymentMethod = 'Tunai';
   final List<String> _methods = ['Tunai', 'QRIS', 'Transfer'];
   bool _isPiutang = false;
+  DateTime? _dueDate;
 
   double get _subtotal {
     return _cart.activeCart.values.fold(0.0, (sum, item) => sum + item.subtotal);
@@ -326,6 +327,7 @@ class _RestockPaymentScreenState extends State<RestockPaymentScreen> {
       payAmount: _payAmount,
       debtAmount: debt < 0 ? 0 : debt,
       date: DateTime.now(),
+      dueDate: _isPiutang ? _dueDate : null,
     );
 
     final currentCtx = context;
@@ -565,6 +567,43 @@ class _RestockPaymentScreenState extends State<RestockPaymentScreen> {
                         }).toList(),
                       ),
                     ),
+                    if (_isPiutang) ...[
+                      const SizedBox(height: AppDimensions.spacingMD),
+                      Row(
+                        children: [
+                          const Icon(Icons.event, size: 20, color: Colors.orange),
+                          const SizedBox(width: 8),
+                          const Text('Jatuh Tempo:', style: TextStyle(fontWeight: FontWeight.w500)),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: InkWell(
+                              onTap: () async {
+                                final selected = await showDatePicker(
+                                  context: context,
+                                  initialDate: _dueDate ?? DateTime.now().add(const Duration(days: 30)),
+                                  firstDate: DateTime.now(),
+                                  lastDate: DateTime.now().add(const Duration(days: 3650)),
+                                );
+                                if (selected != null) {
+                                  setState(() => _dueDate = selected);
+                                }
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.orange),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  _dueDate != null ? DateFormat('dd MMM yyyy').format(_dueDate!) : 'Pilih Tanggal (Opsional)',
+                                  style: TextStyle(color: _dueDate != null ? context.colorTextPrimary : context.colorTextSecondary),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                     
                     const SizedBox(height: AppDimensions.spacingLG),
                     // Uang Dibayar Display

@@ -193,6 +193,7 @@ class Transaction {
   final String? createdBy;
   final String? updatedBy;
   final List<InstallmentPayment> installments;
+  final DateTime? dueDate;
   final String? strukUrl;
 
   Transaction({
@@ -218,6 +219,7 @@ class Transaction {
     this.createdBy,
     this.updatedBy,
     this.installments = const [],
+    this.dueDate,
     this.strukUrl,
   });
 
@@ -245,6 +247,7 @@ class Transaction {
       createdBy: json['createdBy'] as String?,
       updatedBy: json['updatedBy'] as String?,
       installments: [], // Di-fetch terpisah dari sub-collection
+      dueDate: (json['dueDate'] as Timestamp?)?.toDate(),
     );
   }
 
@@ -272,6 +275,7 @@ class Transaction {
       'updatedAt': Timestamp.fromDate(updatedAt),
       'createdBy': createdBy,
       'updatedBy': updatedBy,
+      'dueDate': dueDate != null ? Timestamp.fromDate(dueDate!) : null,
     };
   }
 
@@ -298,6 +302,7 @@ class Transaction {
     String? createdBy,
     String? updatedBy,
     List<InstallmentPayment>? installments,
+    DateTime? dueDate,
     String? strukUrl,
   }) {
     return Transaction(
@@ -323,6 +328,7 @@ class Transaction {
       createdBy: createdBy ?? this.createdBy,
       updatedBy: updatedBy ?? this.updatedBy,
       installments: installments ?? this.installments,
+      dueDate: dueDate ?? this.dueDate,
       strukUrl: strukUrl ?? this.strukUrl,
     );
   }
