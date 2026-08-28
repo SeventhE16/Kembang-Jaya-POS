@@ -6,6 +6,7 @@ import '../constants/app_colors.dart';
 import '../constants/app_dimensions.dart';
 import 'app_button.dart';
 import 'app_text_field.dart';
+import 'status_dialog.dart';
 import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class AppCustomerPicker extends StatefulWidget {
@@ -52,7 +53,7 @@ class _AppCustomerPickerState extends State<AppCustomerPicker> {
             const SizedBox(height: AppDimensions.spacingMD),
             AppTextField(
               controller: phoneController,
-              label: 'No. Telepon',
+              label: 'No. Telepon (Opsional)',
               hint: '0812...',
               keyboardType: TextInputType.phone,
             ),
@@ -67,7 +68,10 @@ class _AppCustomerPickerState extends State<AppCustomerPicker> {
           AppButton(
             label: 'Simpan',
             onPressed: () async {
-              if (nameController.text.trim().isEmpty || phoneController.text.trim().isEmpty) return;
+              if (nameController.text.trim().isEmpty) {
+                showStatusSnackBar(ctx, message: 'Nama pelanggan harus diisi', type: SnackbarType.warning);
+                return;
+              }
               final newCust = Customer(
                 id: 'C${DateTime.now().millisecondsSinceEpoch}',
                 name: nameController.text.trim(),
@@ -108,7 +112,7 @@ class _AppCustomerPickerState extends State<AppCustomerPicker> {
             const SizedBox(height: AppDimensions.spacingMD),
             AppTextField(
               controller: phoneController,
-              label: 'No. Telepon',
+              label: 'No. Telepon (Opsional)',
               hint: '0812...',
               keyboardType: TextInputType.phone,
             ),
@@ -116,13 +120,38 @@ class _AppCustomerPickerState extends State<AppCustomerPicker> {
         ),
         actions: [
           TextButton(
+            onPressed: () async {
+              // Hapus pelanggan
+              final confirm = await showConfirmDialog(
+                context,
+                title: 'Hapus Pelanggan?',
+                message: 'Apakah Anda yakin ingin menghapus ${cust.name}?',
+                isDestructive: true,
+              );
+              
+              if (confirm == true && mounted) {
+                try {
+                  Navigator.pop(ctx);
+                  await context.read<CustomerProvider>().deleteCustomer(cust.id);
+                  if (mounted) showStatusSnackBar(context, message: 'Pelanggan dihapus', type: SnackbarType.success);
+                } catch(e) {
+                  if (mounted) showStatusSnackBar(context, message: 'Gagal menghapus', type: SnackbarType.error);
+                }
+              }
+            },
+            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+          ),
+          TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: Text('Batal', style: TextStyle(color: context.colorTextSecondary)),
           ),
           AppButton(
             label: 'Simpan',
             onPressed: () async {
-              if (nameController.text.trim().isEmpty || phoneController.text.trim().isEmpty) return;
+              if (nameController.text.trim().isEmpty) {
+                showStatusSnackBar(ctx, message: 'Nama pelanggan harus diisi', type: SnackbarType.warning);
+                return;
+              }
               
               cust.name = nameController.text.trim();
               cust.phone = phoneController.text.trim();
@@ -198,7 +227,7 @@ class _AppCustomerPickerState extends State<AppCustomerPicker> {
                   return ListTile(
                     leading: isSelected ? Icon(Icons.check_circle, color: context.colorPrimary) : CircleAvatar(backgroundColor: Colors.black12, child: Icon(Icons.person, color: Colors.white)),
                     title: Text(cust.name, style: Theme.of(context).textTheme.bodyLarge),
-                    subtitle: Text(cust.phone, style: Theme.of(context).textTheme.bodySmall),
+                    subtitle: Text(cust.phone.isNotEmpty ? cust.phone : 'Tidak ada no telepon', style: Theme.of(context).textTheme.bodySmall),
                     trailing: IconButton(
                       icon: Icon(Icons.edit, color: context.colorTextSecondary, size: 20),
                       onPressed: () => _editCustomer(cust),

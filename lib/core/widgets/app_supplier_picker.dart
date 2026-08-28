@@ -39,9 +39,9 @@ class _AppSupplierPickerState extends State<AppSupplierPicker> {
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppDimensions.radiusLG)),
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppDimensions.radiusLG)),
       ),
       child: Column(
         children: [
@@ -52,7 +52,7 @@ class _AppSupplierPickerState extends State<AppSupplierPicker> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: Colors.grey.shade400,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -65,10 +65,10 @@ class _AppSupplierPickerState extends State<AppSupplierPicker> {
               children: [
                 Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Text(
                         'Pilih Supplier',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: Theme.of(context).textTheme.titleLarge,
                       ),
                     ),
                     AppButton(
@@ -121,7 +121,7 @@ class _AppSupplierPickerState extends State<AppSupplierPicker> {
                             selected: isSelected,
                             selectedTileColor: context.colorPrimary.withValues(alpha: 0.05),
                             leading: CircleAvatar(
-                              backgroundColor: isSelected ? context.colorPrimary : Colors.grey.shade200,
+                              backgroundColor: isSelected ? context.colorPrimary : context.colorInputFill,
                               child: Text(
                                 supplier.name.isNotEmpty ? supplier.name[0].toUpperCase() : '?',
                                 style: TextStyle(
@@ -133,12 +133,13 @@ class _AppSupplierPickerState extends State<AppSupplierPicker> {
                             title: Text(
                               supplier.name,
                               style: TextStyle(
+                                color: context.colorTextPrimary,
                                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                               ),
                             ),
                             subtitle: Text(
                               supplier.phone.isNotEmpty ? supplier.phone : 'Tidak ada no telepon',
-                              style: const TextStyle(fontSize: 12),
+                              style: TextStyle(fontSize: 12, color: context.colorTextSecondary),
                             ),
                             trailing: isSelected
                                 ? Icon(Icons.check_circle, color: context.colorPrimary)
@@ -177,7 +178,7 @@ class _AppSupplierPickerState extends State<AppSupplierPicker> {
               const SizedBox(height: AppDimensions.spacingMD),
               AppTextField(
                 controller: phoneController,
-                label: 'No. Telepon',
+                label: 'No. Telepon (Opsional)',
                 hint: '0812...',
                 keyboardType: TextInputType.phone,
               ),
@@ -245,7 +246,7 @@ class _AppSupplierPickerState extends State<AppSupplierPicker> {
               const SizedBox(height: AppDimensions.spacingMD),
               AppTextField(
                 controller: phoneController,
-                label: 'No. Telepon',
+                label: 'No. Telepon (Opsional)',
                 hint: '0812...',
                 keyboardType: TextInputType.phone,
               ),
@@ -253,6 +254,28 @@ class _AppSupplierPickerState extends State<AppSupplierPicker> {
           ),
         ),
         actions: [
+          TextButton(
+            onPressed: () async {
+              // Delete action
+              final confirm = await showConfirmDialog(
+                context,
+                title: 'Hapus Supplier?',
+                message: 'Apakah Anda yakin ingin menghapus ${supplier.name}?',
+                isDestructive: true,
+              );
+              
+              if (confirm == true && mounted) {
+                try {
+                  Navigator.pop(ctx); // Close dialog
+                  await context.read<SupplierProvider>().deleteSupplier(supplier.id);
+                  if (mounted) showStatusSnackBar(context, message: 'Supplier dihapus', type: SnackbarType.success);
+                } catch(e) {
+                  if (mounted) showStatusSnackBar(context, message: 'Gagal menghapus', type: SnackbarType.error);
+                }
+              }
+            },
+            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: Text('Batal', style: TextStyle(color: context.colorTextSecondary)),
