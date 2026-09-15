@@ -72,7 +72,24 @@ class PrinterService {
     }
   }
 
+  Future<void> _ensureConnected() async {
+    final connected = await bluetooth.isConnected;
+    if (connected != true) {
+      final devices = await bluetooth.getBondedDevices();
+      if (devices.isNotEmpty) {
+        try {
+          await bluetooth.connect(devices.first);
+          _selectedDevice = devices.first;
+          _isConnected = true;
+        } catch (e) {
+          debugPrint('Auto connect failed: $e');
+        }
+      }
+    }
+  }
+
   Future<void> printReceipt(String content) async {
+    await _ensureConnected();
     final isConnected = await bluetooth.isConnected;
     if (isConnected != true) return;
 
@@ -83,6 +100,7 @@ class PrinterService {
   }
 
   Future<void> printTransaction(var transaction, var settings) async {
+    await _ensureConnected();
     final isConnected = await bluetooth.isConnected;
     if (isConnected != true) return;
 

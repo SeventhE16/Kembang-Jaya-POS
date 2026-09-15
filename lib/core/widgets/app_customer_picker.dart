@@ -122,11 +122,16 @@ class _AppCustomerPickerState extends State<AppCustomerPicker> {
           TextButton(
             onPressed: () async {
               // Hapus pelanggan
-              final confirm = await showConfirmDialog(
-                context,
-                title: 'Hapus Pelanggan?',
-                message: 'Apakah Anda yakin ingin menghapus ${cust.name}?',
-                isDestructive: true,
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (c) => AlertDialog(
+                  title: const Text('Hapus Pelanggan?'),
+                  content: Text('Apakah Anda yakin ingin menghapus ${cust.name}?'),
+                  actions: [
+                    TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Batal')),
+                    TextButton(onPressed: () => Navigator.pop(c, true), child: const Text('Hapus', style: TextStyle(color: Colors.red))),
+                  ],
+                )
               );
               
               if (confirm == true && mounted) {

@@ -67,49 +67,44 @@ class TransactionService {
                   quantity: item.quantity,
                   basePrice: item.product.basePrice,
                   dateAdded: DateTime.now(),
+                  grade: item.product.name.contains('Grade') ? item.product.name.split('Grade ').last : null, // Simplistic attempt, or we could just set it null since restock UI will provide it later
                 ));
               } else {
-                // Sale - FIFO logic
-                int remainingToDeduct = item.quantity;
-                double totalCogs = 0;
-                
-                // Sort by oldest dateAdded first just in case
-                currentBatches.sort((a, b) => a.dateAdded.compareTo(b.dateAdded));
-                
-                for (int j = 0; j < currentBatches.length; j++) {
-                  if (remainingToDeduct <= 0) break;
-                  
-                  if (currentBatches[j].quantity > 0) {
-                    int qtyToTake = remainingToDeduct <= currentBatches[j].quantity ? remainingToDeduct : currentBatches[j].quantity;
-                    totalCogs += qtyToTake * currentBatches[j].basePrice;
-                    currentBatches[j].quantity -= qtyToTake;
-                    remainingToDeduct -= qtyToTake;
+                // Sale - Specific Identification using batchAllocations
+                if (item.batchAllocations != null && item.batchAllocations!.isNotEmpty) {
+                  for (var alloc in item.batchAllocations!) {
+                    int batchIndex = currentBatches.indexWhere((b) => b.id == alloc.batchId);
+                    if (batchIndex != -1) {
+                      currentBatches[batchIndex].quantity -= alloc.quantity;
+                    }
                   }
+                  // Clean up empty batches
+                  currentBatches.removeWhere((b) => b.quantity <= 0);
+                } else {
+                  // Fallback to legacy FIFO if no allocations provided
+                  int remainingToDeduct = item.quantity;
+                  currentBatches.sort((a, b) => a.dateAdded.compareTo(b.dateAdded));
+                  for (int j = 0; j < currentBatches.length; j++) {
+                    if (remainingToDeduct <= 0) break;
+                    if (currentBatches[j].quantity > 0) {
+                      int qtyToTake = remainingToDeduct <= currentBatches[j].quantity ? remainingToDeduct : currentBatches[j].quantity;
+                      currentBatches[j].quantity -= qtyToTake;
+                      remainingToDeduct -= qtyToTake;
+                    }
+                  }
+                  currentBatches.removeWhere((b) => b.quantity <= 0);
                 }
                 
-                // Fallback for negative stock (sold more than tracked in batches)
-                if (remainingToDeduct > 0) {
-                  totalCogs += remainingToDeduct * product.basePrice;
-                }
-                
-                // Clean up empty batches
-                currentBatches.removeWhere((b) => b.quantity <= 0);
-                
-                // Update item's cogs
-                finalItem = CartItem(
-                  product: item.product,
-                  quantity: item.quantity,
-                  customPrice: item.customPrice,
-                  itemDiscount: item.itemDiscount,
-                  note: item.note,
-                  cogs: totalCogs,
-                );
+                finalItem = item;
               }
+
+              // Update stock on the product
+              int newTotalStock = currentBatches.fold(0, (sum, batch) => sum + batch.quantity);
               
-              final int stockDelta = transaction.type == 'purchase' ? item.quantity : -item.quantity;
               tx.update(productRef, {
-                'stock': FieldValue.increment(stockDelta),
                 'stockBatches': currentBatches.map((e) => e.toJson()).toList(),
+                'stock': newTotalStock,
+                'updatedAt': FieldValue.serverTimestamp(),
               });
             }
           }
@@ -178,23 +173,39 @@ class TransactionService {
           final product = Product.fromJson(productDoc.data()!, productDoc.id);
           List<StockBatch> batches = List.from(product.stockBatches);
 
-          // Kembalikan stok dengan menambahkan batch baru dari transaksi lama
-          batches.add(StockBatch(
-            id: 'revert_${oldTx.id}_${oldItem.product.id}',
-            quantity: oldItem.quantity,
-            basePrice: oldItem.cogs != null && oldItem.quantity > 0
-                ? (oldItem.cogs! / oldItem.quantity)
-                : oldItem.product.basePrice,
-            dateAdded: oldTx.date,
-          ));
+          if (oldItem.batchAllocations != null && oldItem.batchAllocations!.isNotEmpty) {
+            for (var alloc in oldItem.batchAllocations!) {
+              int idx = batches.indexWhere((b) => b.id == alloc.batchId);
+              if (idx != -1) {
+                batches[idx].quantity += alloc.quantity;
+              } else {
+                batches.add(StockBatch(
+                  id: alloc.batchId,
+                  quantity: alloc.quantity,
+                  basePrice: alloc.basePrice,
+                  dateAdded: oldTx.date,
+                ));
+              }
+            }
+          } else {
+            // Legacy revert
+            batches.add(StockBatch(
+              id: 'revert_${oldTx.id}_${oldItem.product.id}',
+              quantity: oldItem.quantity,
+              basePrice: oldItem.product.basePrice,
+              dateAdded: oldTx.date,
+            ));
+          }
+
+          int newTotalStock = batches.fold(0, (sum, batch) => sum + batch.quantity);
 
           ftx.update(productRef, {
-            'stock': FieldValue.increment(oldItem.quantity),
+            'stock': newTotalStock,
             'stockBatches': batches.map((e) => e.toJson()).toList(),
           });
         }
 
-        // 2. POTONG stok dari transaksi baru (FIFO)
+        // 2. POTONG stok dari transaksi baru (Specific Identification)
         final List<CartItem> updatedItems = [];
         for (var newItem in newTx.items) {
           if (newItem.product.category == 'Jasa') {
@@ -208,37 +219,38 @@ class TransactionService {
           if (productDoc.exists) {
             final product = Product.fromJson(productDoc.data()!, productDoc.id);
             List<StockBatch> batches = List.from(product.stockBatches);
-            batches.sort((a, b) => a.dateAdded.compareTo(b.dateAdded));
-
-            int remaining = newItem.quantity;
-            double totalCogs = 0;
-            for (int j = 0; j < batches.length; j++) {
-              if (remaining <= 0) break;
-              if (batches[j].quantity > 0) {
-                int take = remaining <= batches[j].quantity ? remaining : batches[j].quantity;
-                totalCogs += take * batches[j].basePrice;
-                batches[j].quantity -= take;
-                remaining -= take;
+            
+            if (newItem.batchAllocations != null && newItem.batchAllocations!.isNotEmpty) {
+              for (var alloc in newItem.batchAllocations!) {
+                int idx = batches.indexWhere((b) => b.id == alloc.batchId);
+                if (idx != -1) {
+                  batches[idx].quantity -= alloc.quantity;
+                }
+              }
+            } else {
+              // Fallback to legacy FIFO
+              int remaining = newItem.quantity;
+              batches.sort((a, b) => a.dateAdded.compareTo(b.dateAdded));
+              for (int j = 0; j < batches.length; j++) {
+                if (remaining <= 0) break;
+                if (batches[j].quantity > 0) {
+                  int take = remaining <= batches[j].quantity ? remaining : batches[j].quantity;
+                  batches[j].quantity -= take;
+                  remaining -= take;
+                }
               }
             }
-            if (remaining > 0) {
-              totalCogs += remaining * product.basePrice;
-            }
+            
             batches.removeWhere((b) => b.quantity <= 0);
 
+            int newTotalStock = batches.fold(0, (sum, batch) => sum + batch.quantity);
+
             ftx.update(productRef, {
-              'stock': FieldValue.increment(-newItem.quantity),
+              'stock': newTotalStock,
               'stockBatches': batches.map((e) => e.toJson()).toList(),
             });
 
-            finalItem = CartItem(
-              product: newItem.product,
-              quantity: newItem.quantity,
-              customPrice: newItem.customPrice,
-              itemDiscount: newItem.itemDiscount,
-              note: newItem.note,
-              cogs: totalCogs,
-            );
+            finalItem = newItem;
           }
           updatedItems.add(finalItem);
         }

@@ -60,23 +60,31 @@ class _CartScreenState extends State<CartScreen> {
         continue;
       }
       
-      int remaining = item.quantity;
       double itemModal = 0;
       
-      List<StockBatch> sortedBatches = List.from(item.product.stockBatches)
-        ..sort((a, b) => a.dateAdded.compareTo(b.dateAdded));
-        
-      for (var batch in sortedBatches) {
-        if (remaining <= 0) break;
-        if (batch.quantity > 0) {
-          int take = remaining <= batch.quantity ? remaining : batch.quantity;
-          itemModal += take * batch.basePrice;
-          remaining -= take;
+      if (item.batchAllocations != null && item.batchAllocations!.isNotEmpty) {
+        for (var alloc in item.batchAllocations!) {
+          itemModal += alloc.quantity * alloc.basePrice;
         }
-      }
-      
-      if (remaining > 0) {
-        itemModal += remaining * item.product.basePrice;
+      } else {
+        // Fallback FIFO
+        int remaining = item.quantity;
+        
+        List<StockBatch> sortedBatches = List.from(item.product.stockBatches)
+          ..sort((a, b) => a.dateAdded.compareTo(b.dateAdded));
+          
+        for (var batch in sortedBatches) {
+          if (remaining <= 0) break;
+          if (batch.quantity > 0) {
+            int take = remaining <= batch.quantity ? remaining : batch.quantity;
+            itemModal += take * batch.basePrice;
+            remaining -= take;
+          }
+        }
+        
+        if (remaining > 0) {
+          itemModal += remaining * item.product.basePrice;
+        }
       }
       
       total += itemModal;
@@ -508,6 +516,182 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
+  void _showBatchAllocatorSheet(String id, CartItem item) {
+    // Clone currently allocated batches or start fresh
+    List<BatchAllocation> currentAllocations = item.batchAllocations != null 
+        ? List.from(item.batchAllocations!) 
+        : [];
+        
+    // Map of batchId to allocated qty for UI state
+    Map<String, int> allocationMap = {};
+    for (var a in currentAllocations) {
+      allocationMap[a.batchId] = a.quantity;
+    }
+
+    // Sort batches by oldest date added
+    List<StockBatch> availableBatches = List.from(item.product.stockBatches);
+    availableBatches.sort((a, b) => a.dateAdded.compareTo(b.dateAdded));
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) {
+          int totalAllocated = allocationMap.values.fold(0, (sum, q) => sum + q);
+          int remainingNeeded = item.quantity - totalAllocated;
+
+          return Padding(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+            child: Container(
+              height: MediaQuery.of(ctx).size.height * 0.75, // Allow scrolling for many batches
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Pilih Fisik Barang (Batch)',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Pilih asal barang secara fisik. Total: ${item.quantity} (Kurang: $remainingNeeded)',
+                    style: TextStyle(fontSize: 13, color: remainingNeeded == 0 ? context.colorSuccess : context.colorError),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Batch List
+                  Expanded(
+                    child: availableBatches.isEmpty
+                        ? const Center(child: Text('Tidak ada batch stok tersedia'))
+                        : ListView.builder(
+                            itemCount: availableBatches.length,
+                            itemBuilder: (context, index) {
+                              final batch = availableBatches[index];
+                              int allocatedHere = allocationMap[batch.id] ?? 0;
+                              int displayStock = batch.quantity - allocatedHere; // Or just batch.quantity? Actually, batch.quantity is the total available. So remaining stock to pick from is batch.quantity - allocatedHere? Wait, batch.quantity is total. If we pick, it goes down? No, availableBatches has the original unallocated.
+                              // Correct displayStock logic:
+                              // batch.quantity is the DB quantity.
+                              displayStock = batch.quantity - allocatedHere;
+                              
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey[300]!),
+                                  borderRadius: BorderRadius.circular(12),
+                                  color: allocatedHere > 0 ? context.colorPrimary.withValues(alpha: 0.05) : Colors.white,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Modal: ${_currencyFormat.format(batch.basePrice)}',
+                                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                          ),
+                                          if (batch.grade != null && batch.grade!.isNotEmpty)
+                                            Text('Grade: ${batch.grade}', style: const TextStyle(fontSize: 12)),
+                                          Text(
+                                            'Stok tersedia di gudang: ${batch.quantity}',
+                                            style: const TextStyle(fontSize: 12),
+                                          ),
+                                          Text(
+                                            DateFormat('dd/MM/yyyy HH:mm').format(batch.dateAdded),
+                                            style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    // Qty Control
+                                    Row(
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                                          onPressed: allocatedHere > 0 ? () {
+                                            setSheetState(() {
+                                              allocationMap[batch.id] = allocatedHere - 1;
+                                            });
+                                          } : null,
+                                        ),
+                                        Text('$allocatedHere', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                        IconButton(
+                                          icon: Icon(Icons.add_circle_outline, color: context.colorPrimary),
+                                          onPressed: (remainingNeeded > 0 && batch.quantity > allocatedHere) ? () {
+                                            setSheetState(() {
+                                              allocationMap[batch.id] = allocatedHere + 1;
+                                            });
+                                          } : null,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          child: const Text('Batal'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton(
+                          onPressed: remainingNeeded == 0 ? () {
+                            List<BatchAllocation> finalAllocations = [];
+                            allocationMap.forEach((batchId, qty) {
+                              if (qty > 0) {
+                                final batchInfo = availableBatches.firstWhere((b) => b.id == batchId);
+                                finalAllocations.add(BatchAllocation(
+                                  batchId: batchId,
+                                  quantity: qty,
+                                  basePrice: batchInfo.basePrice,
+                                ));
+                              }
+                            });
+                            
+                            setState(() {
+                              item.batchAllocations = finalAllocations;
+                            });
+                            Navigator.pop(ctx);
+                          } : null,
+                          style: ElevatedButton.styleFrom(backgroundColor: context.colorPrimary),
+                          child: const Text('Simpan Alokasi', style: TextStyle(color: Colors.white)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -654,6 +838,14 @@ class _CartScreenState extends State<CartScreen> {
                                   _buildActionChip('Diskon', () => _editItemDialog(key, 'diskon')),
                                   const SizedBox(width: AppDimensions.spacingSM),
                                   _buildActionChip('Catatan', () => _editItemDialog(key, 'catatan')),
+                                  if (item.product.trackStock) ...[
+                                    const SizedBox(width: AppDimensions.spacingSM),
+                                    _buildActionChip(
+                                      item.batchAllocations != null && (item.batchAllocations!.fold(0, (sum, a) => sum + a.quantity)) == item.quantity
+                                        ? 'Batch ✓' : 'Pilih Batch', 
+                                      () => _showBatchAllocatorSheet(key, item)
+                                    ),
+                                  ],
                                 ],
                               ),
                               // Qty controls
@@ -769,6 +961,25 @@ class _CartScreenState extends State<CartScreen> {
                     label: 'Bayar (${_currencyFormat.format(_subtotal)})',
                     isFullWidth: true,
                     onPressed: () {
+                      // Validate batch allocations
+                      bool allValid = true;
+                      String errorMsg = '';
+                      for (var entry in _cart.activeCart.entries) {
+                        var item = entry.value;
+                        if (!item.product.trackStock) continue;
+                        int allocTotal = item.batchAllocations?.fold(0, (sum, a) => sum! + a.quantity) ?? 0;
+                        if (allocTotal != item.quantity) {
+                          allValid = false;
+                          errorMsg = 'Barang ${item.product.name} belum dialokasikan batch dengan benar (Baru $allocTotal dari ${item.quantity}).\nSilakan "Pilih Batch" terlebih dahulu.';
+                          break;
+                        }
+                      }
+
+                      if (!allValid) {
+                        showStatusSnackBar(context, message: errorMsg, type: SnackbarType.error);
+                        return;
+                      }
+
                       Navigator.pushNamed(context, AppRoutes.payment).then((_) {
                         if (mounted) setState(() {});
                       });

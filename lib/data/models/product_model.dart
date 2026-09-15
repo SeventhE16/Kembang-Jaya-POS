@@ -26,12 +26,14 @@ class StockBatch {
   int quantity;
   double basePrice;
   final DateTime dateAdded;
+  String? grade;
 
   StockBatch({
     required this.id,
     required this.quantity,
     required this.basePrice,
     required this.dateAdded,
+    this.grade,
   });
 
   factory StockBatch.fromJson(Map<String, dynamic> json) {
@@ -40,6 +42,7 @@ class StockBatch {
       quantity: json['quantity'] ?? 0,
       basePrice: (json['basePrice'] ?? 0).toDouble(),
       dateAdded: (json['dateAdded'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      grade: json['grade'],
     );
   }
 
@@ -49,6 +52,7 @@ class StockBatch {
       'quantity': quantity,
       'basePrice': basePrice,
       'dateAdded': Timestamp.fromDate(dateAdded),
+      'grade': grade,
     };
   }
 }
@@ -89,24 +93,39 @@ class Product {
   });
 
   factory Product.fromJson(Map<String, dynamic> json, String id) {
+    int parsedStock = json['stock'] ?? 0;
+    double parsedBasePrice = (json['basePrice'] ?? 0).toDouble();
+    List<StockBatch> parsedBatches = (json['stockBatches'] as List<dynamic>?)
+            ?.map((e) => StockBatch.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [];
+
+    // MIGRATION: If there is stock but no batches, create a legacy batch
+    if (parsedStock > 0 && parsedBatches.isEmpty) {
+      parsedBatches.add(StockBatch(
+        id: 'legacy_batch_${DateTime.now().millisecondsSinceEpoch}',
+        quantity: parsedStock,
+        basePrice: parsedBasePrice,
+        dateAdded: (json['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+        grade: 'Legacy',
+      ));
+    }
+
     return Product(
       id: id,
       code: json['code'] ?? '-',
       name: json['name'] ?? '',
       category: json['category'] ?? '',
       unit: json['unit'] ?? '',
-      basePrice: (json['basePrice'] ?? 0).toDouble(),
+      basePrice: parsedBasePrice,
       sellPrice: (json['sellPrice'] ?? 0).toDouble(),
-      stock: json['stock'] ?? 0,
+      stock: parsedStock,
       trackStock: json['trackStock'] ?? true,
       wholesalePrices: (json['wholesalePrices'] as List<dynamic>?)
               ?.map((e) => WholesalePrice.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      stockBatches: (json['stockBatches'] as List<dynamic>?)
-              ?.map((e) => StockBatch.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
+      stockBatches: parsedBatches,
       createdAt: (json['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (json['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       createdBy: json['createdBy'] as String?,

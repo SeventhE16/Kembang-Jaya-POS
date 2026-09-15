@@ -187,7 +187,7 @@ class _RestockCartScreenState extends State<RestockCartScreen> {
       controller.text = item.itemDiscount.toStringAsFixed(0);
       keyboard = TextInputType.number;
     } else if (field == 'catatan') {
-      title = 'Catatan Barang';
+      title = 'Grade Barang (Opsional)';
       controller.text = item.note ?? '';
       keyboard = TextInputType.text;
     }
@@ -307,7 +307,7 @@ class _RestockCartScreenState extends State<RestockCartScreen> {
                               ),
                             if (item.note != null)
                               Text(
-                                'Catatan: ${item.note}',
+                                'Grade: ${item.note}',
                                 style: TextStyle(fontSize: 13, color: context.colorTextSecondary, fontStyle: FontStyle.italic),
                               ),
                           ],
@@ -323,7 +323,7 @@ class _RestockCartScreenState extends State<RestockCartScreen> {
                                   children: [
                                     _buildActionChip('Harga', () => _editItemDialog(key, 'harga')),
                                     _buildActionChip('Diskon', () => _editItemDialog(key, 'diskon')),
-                                    _buildActionChip('Catatan', () => _editItemDialog(key, 'catatan')),
+                                    _buildActionChip('Grade', () => _editItemDialog(key, 'catatan')),
                                   ],
                                 ),
                               ),

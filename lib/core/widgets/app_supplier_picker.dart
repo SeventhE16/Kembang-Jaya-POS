@@ -257,11 +257,16 @@ class _AppSupplierPickerState extends State<AppSupplierPicker> {
           TextButton(
             onPressed: () async {
               // Delete action
-              final confirm = await showConfirmDialog(
-                context,
-                title: 'Hapus Supplier?',
-                message: 'Apakah Anda yakin ingin menghapus ${supplier.name}?',
-                isDestructive: true,
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (c) => AlertDialog(
+                  title: const Text('Hapus Supplier?'),
+                  content: Text('Apakah Anda yakin ingin menghapus ${supplier.name}?'),
+                  actions: [
+                    TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Batal')),
+                    TextButton(onPressed: () => Navigator.pop(c, true), child: const Text('Hapus', style: TextStyle(color: Colors.red))),
+                  ],
+                )
               );
               
               if (confirm == true && mounted) {

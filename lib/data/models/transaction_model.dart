@@ -3,13 +3,41 @@ import 'product_model.dart';
 import 'discount_model.dart';
 import 'fee_model.dart';
 
+class BatchAllocation {
+  final String batchId;
+  final int quantity;
+  final double basePrice;
+
+  BatchAllocation({
+    required this.batchId,
+    required this.quantity,
+    required this.basePrice,
+  });
+
+  factory BatchAllocation.fromJson(Map<String, dynamic> json) {
+    return BatchAllocation(
+      batchId: json['batchId'] ?? '',
+      quantity: json['quantity'] ?? 0,
+      basePrice: (json['basePrice'] ?? 0).toDouble(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'batchId': batchId,
+      'quantity': quantity,
+      'basePrice': basePrice,
+    };
+  }
+}
+
 class CartItem {
   final Product product;
   int quantity;
   double? customPrice;
   double itemDiscount;
   String? note;
-  double? cogs; // Exact Cost of Goods Sold from FIFO calculation
+  List<BatchAllocation>? batchAllocations;
 
   CartItem({
     required this.product,
@@ -17,7 +45,7 @@ class CartItem {
     this.customPrice,
     this.itemDiscount = 0,
     this.note,
-    this.cogs,
+    this.batchAllocations,
   });
 
   factory CartItem.fromJson(Map<String, dynamic> json) {
@@ -27,7 +55,9 @@ class CartItem {
       customPrice: json['customPrice'] != null ? (json['customPrice'] as num).toDouble() : null,
       itemDiscount: (json['itemDiscount'] ?? 0).toDouble(),
       note: json['note'],
-      cogs: json['cogs'] != null ? (json['cogs'] as num).toDouble() : null,
+      batchAllocations: json['batchAllocations'] != null
+          ? (json['batchAllocations'] as List).map((e) => BatchAllocation.fromJson(e)).toList()
+          : null,
     );
   }
 
@@ -38,7 +68,7 @@ class CartItem {
       'customPrice': customPrice,
       'itemDiscount': itemDiscount,
       'note': note,
-      'cogs': cogs,
+      'batchAllocations': batchAllocations?.map((e) => e.toJson()).toList(),
     };
   }
 

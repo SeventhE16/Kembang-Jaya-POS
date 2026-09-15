@@ -48,16 +48,8 @@ class AuthProvider extends ChangeNotifier {
     if (_firebaseUser != null) {
       final prefs = await SharedPreferences.getInstance();
       final lastLoginStr = prefs.getString('last_login_time');
-      if (lastLoginStr != null) {
-        final lastLogin = DateTime.parse(lastLoginStr);
-        if (DateTime.now().difference(lastLogin).inHours >= 24) {
-          debugPrint('Session expired (24h). Forcing logout.');
-          await prefs.remove('last_login_time');
-          await _authService.logout();
-          return;
-        }
-      } else {
-        // Set it for existing sessions so they expire in 24 hours from first open after update
+      if (lastLoginStr == null) {
+        // Just set the initial login time for tracking, but we don't force logout anymore
         await prefs.setString('last_login_time', DateTime.now().toIso8601String());
       }
 

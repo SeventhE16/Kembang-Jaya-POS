@@ -153,6 +153,16 @@ class _SalesScreenState extends State<SalesScreen> {
           'Penjualan',
           style: Theme.of(context).textTheme.titleLarge,
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh Data',
+            onPressed: () {
+              context.read<ProductProvider>().loadProducts();
+              context.read<TransactionProvider>().loadTransactions();
+            },
+          ),
+        ],
         leading: cartProvider.editingTransactionId != null
             ? IconButton(
                 icon: const Icon(Icons.arrow_back, size: 26),
