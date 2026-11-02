@@ -109,6 +109,11 @@ class CartItem {
 
     return (product.sellPrice - itemDiscount) * quantity;
   }
+
+  double? get cogs {
+    if (batchAllocations == null || batchAllocations!.isEmpty) return null;
+    return batchAllocations!.fold(0.0, (sum, alloc) => sum! + (alloc.basePrice * alloc.quantity));
+  }
 }
 
 class HoldOrder {

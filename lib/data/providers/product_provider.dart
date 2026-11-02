@@ -39,12 +39,20 @@ class ProductProvider extends ChangeNotifier {
     });
     
     if (StoreContext().storeIdOrNull != null) {
-      _sub = _productService.streamProducts().listen((products) {
-        _products = products;
-        _isLoading = false;
-        notifyListeners();
-      });
+      loadProducts();
     }
+  }
+
+  void loadProducts() {
+    if (StoreContext().storeIdOrNull == null) return;
+    _sub?.cancel();
+    _isLoading = true;
+    notifyListeners();
+    _sub = _productService.streamProducts().listen((products) {
+      _products = products;
+      _isLoading = false;
+      notifyListeners();
+    });
   }
 
   Future<void> addProduct(Product product) async {
@@ -63,8 +71,8 @@ class ProductProvider extends ChangeNotifier {
     await _productService.reduceStock(productId, quantity);
   }
 
-  Future<void> transferStock(String sourceId, String targetId, int quantity) async {
-    await _productService.transferStock(sourceId, targetId, quantity);
+  Future<void> transferStock(String sourceId, String targetId, int quantity, {List<dynamic>? allocations}) async {
+    await _productService.transferStock(sourceId, targetId, quantity, allocations: allocations);
   }
   @override
   void dispose() {

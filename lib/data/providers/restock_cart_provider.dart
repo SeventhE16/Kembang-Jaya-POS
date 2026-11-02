@@ -7,7 +7,7 @@ import '../../core/services/store_context.dart';
 import 'dart:async';
 
 class RestockCartProvider extends ChangeNotifier {
-  Map<String, CartItem> _activeCart = {};
+  final Map<String, CartItem> _activeCart = {};
   Supplier? _activeSupplier;
   String? _activeNote;
   Discount? _activeDiscount;

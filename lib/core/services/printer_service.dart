@@ -192,13 +192,13 @@ class PrinterService {
         );
         bluetooth.printLeftRight(
           "  Diskon (-${_formatRupiah(itemDiscount)})", 
-          "${_formatRupiah(total)}", 
+          _formatRupiah(total), 
           1,
         );
       } else {
         bluetooth.printLeftRight(
           "$qty ${item.product.unit} x ${_formatRupiah(price)}", 
-          "${_formatRupiah(total)}", 
+          _formatRupiah(total), 
           0,
         );
       }
@@ -207,7 +207,7 @@ class PrinterService {
     bluetooth.printCustom("--------------------------------", 1, 1);
     
     // Totals
-    bluetooth.printLeftRight("Subtotal", "${_formatRupiah(t.subtotal)}", 1);
+    bluetooth.printLeftRight("Subtotal", _formatRupiah(t.subtotal), 1);
     if (t.discount != null) {
       totalSavings += t.discount!.value;
       bluetooth.printLeftRight("Diskon (${t.discount!.name})", "-${_formatRupiah(t.discount!.value)}", 1);
@@ -224,22 +224,22 @@ class PrinterService {
     }
     
     bluetooth.printCustom("--------------------------------", 1, 1);
-    bluetooth.printLeftRight("TOTAL", "${_formatRupiah(t.total)}", 1); // nanti ganti jadi 1
+    bluetooth.printLeftRight("TOTAL", _formatRupiah(t.total), 1); // nanti ganti jadi 1
     
     bluetooth.printCustom("--------------------------------", 1, 1);
-    bluetooth.printLeftRight("Bayar (${t.paymentMethod})", "${_formatRupiah(t.payAmount)}", 1);
+    bluetooth.printLeftRight("Bayar (${t.paymentMethod})", _formatRupiah(t.payAmount), 1);
     
     if (t.paymentMethod == 'Kasbon' || t.debtAmount > 0) {
-      bluetooth.printLeftRight("Belum Lunas", "${_formatRupiah(t.debtAmount)}", 1);
+      bluetooth.printLeftRight("Belum Lunas", _formatRupiah(t.debtAmount), 1);
     } else {
       final change = t.payAmount - t.total;
       if (change > 0) {
-        bluetooth.printLeftRight("Kembali", "${_formatRupiah(change)}", 1);
+        bluetooth.printLeftRight("Kembali", _formatRupiah(change), 1);
       }
     }
 
     if (totalSavings > 0) {
-      bluetooth.printLeftRight("Anda Hemat", "${_formatRupiah(totalSavings)}", 1);
+      bluetooth.printLeftRight("Anda Hemat", _formatRupiah(totalSavings), 1);
     }
     
     bluetooth.printCustom("--------------------------------", 1, 1);

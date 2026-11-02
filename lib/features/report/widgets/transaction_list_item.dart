@@ -29,7 +29,8 @@ class TransactionListItem extends StatelessWidget {
     for (var item in tx.items) {
       costBasis += item.cogs ?? (item.product.basePrice * item.quantity);
     }
-    final keuntungan = tx.subtotal - costBasis;
+    double feeAmount = tx.extraFee + (tx.fee?.value ?? 0);
+    final keuntungan = tx.total - feeAmount - costBasis;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppDimensions.spacingMD),

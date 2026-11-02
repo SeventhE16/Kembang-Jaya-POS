@@ -7,7 +7,7 @@ import '../../core/services/store_context.dart';
 import 'dart:async';
 
 class CartProvider extends ChangeNotifier {
-  Map<String, CartItem> _activeCart = {};
+  final Map<String, CartItem> _activeCart = {};
   Customer? _activeCustomer;
   String? _activeNote;
   Discount? _activeDiscount;
@@ -63,7 +63,7 @@ class CartProvider extends ChangeNotifier {
         customPrice: item.customPrice,
         itemDiscount: item.itemDiscount,
         note: item.note,
-        cogs: item.cogs,
+        batchAllocations: item.batchAllocations != null ? List.from(item.batchAllocations!) : null,
       );
     }
 

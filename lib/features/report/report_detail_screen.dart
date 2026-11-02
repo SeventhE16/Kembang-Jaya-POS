@@ -1,16 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
-import '../../core/constants/app_routes.dart';
-import '../../core/widgets/status_dialog.dart';
 import '../../data/models/transaction_model.dart';
-import '../../data/providers/transaction_provider.dart';
-import '../../data/providers/product_provider.dart';
-import '../../data/providers/audit_provider.dart';
-import '../../data/providers/cart_provider.dart';
 import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 import 'widgets/transaction_list_item.dart';
 
@@ -36,9 +27,10 @@ class ReportDetailScreen extends StatelessWidget {
       
       double costBasis = 0;
       for (var item in tx.items) {
-        costBasis += item.product.basePrice * item.quantity;
+        costBasis += item.cogs ?? (item.product.basePrice * item.quantity);
       }
-      totalKeuntungan += (tx.total - costBasis);
+      double feeAmount = tx.extraFee + (tx.fee?.value ?? 0);
+      totalKeuntungan += (tx.total - feeAmount - costBasis);
     }
 
     return Scaffold(

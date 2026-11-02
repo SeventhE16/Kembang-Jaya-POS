@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../data/providers/audit_provider.dart';
-import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/widgets/app_button.dart';
@@ -459,10 +458,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Mode Edit — Nota: ${_cart.editingTransactionOriginal?.invoiceNumber ?? _cart.editingTransactionId}'
-                        + (_totalAlreadyPaid > 0
+                        'Mode Edit — Nota: ${_cart.editingTransactionOriginal?.invoiceNumber ?? _cart.editingTransactionId}${_totalAlreadyPaid > 0
                             ? '  |  Sudah dibayar: ${_currencyFormat.format(_totalAlreadyPaid)}'
-                            : ''),
+                            : ''}',
                         style: TextStyle(fontSize: 12, color: context.colorPrimary, fontWeight: FontWeight.w500),
                       ),
                     ),

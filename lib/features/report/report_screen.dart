@@ -1,7 +1,6 @@
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../../core/constants/app_colors.dart';
 import '../../core/widgets/app_drawer.dart';
 import '../../core/widgets/app_empty_state.dart';
 import 'package:provider/provider.dart';
@@ -47,12 +46,6 @@ class _ReportScreenState extends State<ReportScreen> {
       ..sort((a, b) => a.date.compareTo(b.date));
   }
 
-  List<StockEntry> _filteredStockEntries(TransactionProvider provider) {
-    final start = _periodStart;
-    return provider.stockEntries.where((e) => !e.date.isBefore(start)).toList()
-      ..sort((a, b) => a.date.compareTo(b.date));
-  }
-
   List<InstallmentPayment> _filteredInstallments(TransactionProvider provider, {String type = 'sale'}) {
     final start = _periodStart;
     return provider.allInstallments.where((i) {
@@ -90,29 +83,13 @@ class _ReportScreenState extends State<ReportScreen> {
       final key = _labelForDate(t.date);
       grouped.putIfAbsent(key, () => {'label': key, 'pendapatan': 0.0, 'keuntungan': 0.0, 'count': 0, 'sortDate': t.date});
       grouped[key]!['pendapatan'] = (grouped[key]!['pendapatan'] as double) + t.total;
-      // Keuntungan = total - subtotal cost (approximation: total - sum of base prices)
+      // Keuntungan = total - fee - costBasis (agar diskon mengurangi keuntungan, fee tidak menambah)
       double costBasis = 0;
       for (var item in t.items) {
         costBasis += item.cogs ?? (item.product.basePrice * item.quantity);
       }
-      grouped[key]!['keuntungan'] = (grouped[key]!['keuntungan'] as double) + (t.subtotal - costBasis);
-      grouped[key]!['count'] = (grouped[key]!['count'] as int) + 1;
-    }
-
-    final result = grouped.values.toList();
-    result.sort((a, b) => (a['sortDate'] as DateTime).compareTo(b['sortDate'] as DateTime));
-    return result;
-  }
-
-  List<Map<String, dynamic>> _aggregateStockEntries(List<StockEntry> entries) {
-    if (entries.isEmpty) return [];
-
-    final Map<String, Map<String, dynamic>> grouped = {};
-
-    for (var e in entries) {
-      final key = _labelForDate(e.date);
-      grouped.putIfAbsent(key, () => {'label': key, 'pengeluaran': 0.0, 'count': 0, 'sortDate': e.date});
-      grouped[key]!['pengeluaran'] = (grouped[key]!['pengeluaran'] as double) + e.totalCost;
+      double feeAmount = t.extraFee + (t.fee?.value ?? 0);
+      grouped[key]!['keuntungan'] = (grouped[key]!['keuntungan'] as double) + (t.total - feeAmount - costBasis);
       grouped[key]!['count'] = (grouped[key]!['count'] as int) + 1;
     }
 
@@ -218,14 +195,6 @@ class _ReportScreenState extends State<ReportScreen> {
   // ========================================
   // ADDITIONAL REPORTS
   // ========================================
-
-  Widget _buildPlaceholder(String title) {
-    return AppEmptyState(
-      icon: Icons.construction,
-      title: 'Laporan $title',
-      subtitle: 'Fitur ini sedang dalam pengembangan.',
-    );
-  }
 
   Widget _buildStockOpnameReport(TransactionProvider provider) {
     if (provider.isLoading) {
@@ -413,7 +382,8 @@ class _ReportScreenState extends State<ReportScreen> {
       for (var item in t.items) {
         costBasis += item.cogs ?? (item.product.basePrice * item.quantity);
       }
-      return sum + (t.subtotal - costBasis);
+      double feeAmount = t.extraFee + (t.fee?.value ?? 0);
+      return sum + (t.total - feeAmount - costBasis);
     });
     final totalTransaksi = transactions.length;
 
@@ -731,7 +701,7 @@ class _ReportScreenState extends State<ReportScreen> {
                       getDotPainter: (spot, xPercentage, bar, index) {
                         return FlDotCirclePainter(
                           radius: 4,
-                          color: Colors.white,
+                          color: context.colorSurface,
                           strokeWidth: 2,
                           strokeColor: context.colorPrimary,
                         );
@@ -981,7 +951,7 @@ class _ReportScreenState extends State<ReportScreen> {
             margin: const EdgeInsets.only(bottom: 1),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.colorSurface,
               border: Border(bottom: BorderSide(color: context.colorDivider)),
             ),
             child: Row(
@@ -1109,7 +1079,7 @@ class _ReportScreenState extends State<ReportScreen> {
             margin: const EdgeInsets.only(bottom: 1),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.colorSurface,
               border: Border(bottom: BorderSide(color: context.colorDivider)),
             ),
             child: Row(

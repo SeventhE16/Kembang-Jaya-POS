@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../data/models/transaction_model.dart';
 import 'package:depot_kayu_app/core/extensions/context_colors.dart';
@@ -33,7 +32,7 @@ class InstallmentDetailScreen extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: AppDimensions.spacingMD),
                   padding: const EdgeInsets.all(AppDimensions.spacingMD),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: context.colorSurface,
                     borderRadius: BorderRadius.circular(AppDimensions.radius),
                     border: Border.all(color: context.colorDivider),
                   ),

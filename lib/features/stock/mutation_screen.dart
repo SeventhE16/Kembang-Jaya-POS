@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../core/constants/app_colors.dart';
 import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_drawer.dart';
 import '../../core/widgets/status_dialog.dart';
 import '../../data/models/product_model.dart';
 import '../../data/models/mutation_model.dart';
+import '../../data/models/transaction_model.dart';
+import 'package:intl/intl.dart';
 import '../../data/providers/product_provider.dart';
 import '../../data/providers/mutation_provider.dart';
 import '../../data/providers/auth_provider.dart';
@@ -21,6 +22,8 @@ class MutationScreen extends StatefulWidget {
 class _MutationScreenState extends State<MutationScreen> {
   Product? _sourceProduct;
   Product? _targetProduct;
+  List<BatchAllocation>? _allocations;
+  final _currencyFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0);
   final TextEditingController _qtyController = TextEditingController();
   bool _isLoading = false;
 
@@ -43,6 +46,8 @@ class _MutationScreenState extends State<MutationScreen> {
       showStatusSnackBar(context, message: 'Jumlah melebihi stok produk asal (${_sourceProduct!.stock})', type: SnackbarType.warning);
       return;
     }
+
+
 
     // Confirmation dialog
     final confirmed = await showDialog<bool>(
@@ -79,6 +84,7 @@ class _MutationScreenState extends State<MutationScreen> {
         _sourceProduct!.id,
         _targetProduct!.id,
         qty,
+        allocations: _allocations,
       );
 
       // Save mutation record
@@ -158,7 +164,10 @@ class _MutationScreenState extends State<MutationScreen> {
                   _buildProductDropdown(
                     title: 'Pilih Produk Asal',
                     value: _sourceProduct,
-                    onChanged: (p) => setState(() => _sourceProduct = p),
+                    onChanged: (p) => setState(() {
+                      _sourceProduct = p;
+                      _allocations = null;
+                    }),
                   ),
                   if (_sourceProduct != null)
                     Padding(
@@ -203,6 +212,8 @@ class _MutationScreenState extends State<MutationScreen> {
             ),
     );
   }
+
+
 
   void _showProductSearch(BuildContext context, List<Product> products, String title, ValueChanged<Product?> onChanged) {
     showModalBottomSheet(
@@ -329,7 +340,7 @@ class _ProductSearchSheetState extends State<_ProductSearchSheet> {
             height: 350, // Fixed height for the list
             child: ListView.separated(
               itemCount: _filtered.length,
-              separatorBuilder: (_, __) => const Divider(height: 1),
+              separatorBuilder: (_, _) => const Divider(height: 1),
               itemBuilder: (ctx, i) {
                 final p = _filtered[i];
                 return ListTile(

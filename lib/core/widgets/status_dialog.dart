@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../constants/app_colors.dart';
 
 import '../constants/app_dimensions.dart';
 import 'package:depot_kayu_app/core/extensions/context_colors.dart';

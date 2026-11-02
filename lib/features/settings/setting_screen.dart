@@ -7,7 +7,6 @@ import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:provider/provider.dart';
 import '../../data/providers/auth_provider.dart';
 
-import '../../core/constants/app_colors.dart';
 import '../../data/models/user_model.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/constants/app_dimensions.dart';

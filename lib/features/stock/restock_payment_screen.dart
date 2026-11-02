@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../data/providers/audit_provider.dart';
-import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/widgets/app_button.dart';
@@ -686,7 +685,7 @@ class _RestockPaymentScreenState extends State<RestockPaymentScreen> {
               padding: const EdgeInsets.all(AppDimensions.spacingMD),
               decoration: BoxDecoration(
                 color: Theme.of(context).scaffoldBackgroundColor,
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))],
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))],
               ),
               child: AppButton(
                 label: 'SELESAIKAN PEMBELIAN',

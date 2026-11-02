@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_drawer.dart';
@@ -291,7 +290,7 @@ class _ProductScreenState extends State<ProductScreen> {
                             ],
                           ),
                         );
-                      }).toList(),
+                      }),
                     ],
                   ),
                 ),

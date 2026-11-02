@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../data/models/product_model.dart';
-import '../constants/app_colors.dart';
 import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
 class ProductCard extends StatelessWidget {

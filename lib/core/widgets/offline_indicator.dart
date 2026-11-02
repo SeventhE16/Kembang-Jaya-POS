@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../constants/app_colors.dart';
 import '../widgets/app_button.dart';
 import 'package:depot_kayu_app/core/extensions/context_colors.dart';
 
@@ -119,7 +118,7 @@ class _OfflineIndicatorState extends State<OfflineIndicator> {
         // Blocking overlay when needs sync
         if (_needsSync && !_isOffline)
           Container(
-            color: Colors.black.withOpacity(0.85),
+            color: Colors.black.withValues(alpha: 0.85),
             width: double.infinity,
             height: double.infinity,
             child: Center(

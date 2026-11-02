@@ -184,7 +184,7 @@ class _AddStockScreenState extends State<AddStockScreen> {
                       child: Container(
                         height: 56, // Accessible tap target
                         decoration: BoxDecoration(
-                          color: totalCartItems > 0 ? Theme.of(context).colorScheme.primary : Theme.of(context).disabledColor.withOpacity(0.3),
+                          color: totalCartItems > 0 ? Theme.of(context).colorScheme.primary : Theme.of(context).disabledColor.withValues(alpha: 0.3),
                           borderRadius: BorderRadius.circular(AppDimensions.radiusLG),
                         ),
                         child: Row(

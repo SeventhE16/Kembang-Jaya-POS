@@ -54,6 +54,11 @@ class TransactionProvider extends ChangeNotifier {
     }
   }
 
+  void loadTransactions() {
+    if (StoreContext().storeIdOrNull == null) return;
+    _startTransactionStream();
+  }
+
   void _initSubs() {
     _startTransactionStream();
 
